@@ -1,7 +1,7 @@
-import { API } from ".";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface LoginRequest {
-  loginId: string;
+  email: string;
   password: string;
 }
 
@@ -11,7 +11,19 @@ interface LoginResponse {
   role: string;
 }
 
-export const loginApi = async (body: LoginRequest): Promise<LoginResponse> => {
-  const response = await API.post("/user/login", body);
-  return response.data;
-};
+export async function BankLogin(body: LoginRequest): Promise<LoginResponse> {
+  const response = await fetch(`${BASE_URL}/bank/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "로그인에 실패했습니다.");
+  }
+
+  return response.json();
+}
