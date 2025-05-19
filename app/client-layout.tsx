@@ -2,7 +2,8 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import { Sidebar } from "@/components/common/sidebar";
+import { Sidebar } from "@/components/common/Sidebar";
+import UpbitWebSocket from "@/api/UpbitWebSocket";
 
 export default function ClientLayout({
   children,
@@ -16,11 +17,12 @@ export default function ClientLayout({
   }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
-    </div>
-  );
+      <div className="flex h-screen">
+        <Sidebar />
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+        );
+      
 }

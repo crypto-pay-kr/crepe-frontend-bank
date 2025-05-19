@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { ArrowRight, Shield, Zap, BarChart3, CreditCard } from "lucide-react"
+import { CoinPriceProvider } from "@/context/CoinPriceContext"
 
 export default function WelcomePage() {
   return (
