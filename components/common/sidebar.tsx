@@ -1,10 +1,11 @@
 'use client'
-import { BarChart3, Users, Store, User, ArrowRight, Building2, FileCheck, Wallet } from "lucide-react"
+import { BarChart3, Users, Store, User, ArrowRight, Building2, FileCheck, Wallet, LogOut } from "lucide-react"
 import { NavItem } from "./nav-item"
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   
   // 경로에 따라 탭 상태 설정
   const isManagementPath = pathname.startsWith('/management');
@@ -12,6 +13,19 @@ export function Sidebar() {
   
   // 기본 경로(/)에서는 사용자 관리 탭이 선택된 상태로 표시
   const isDefaultPath = pathname === '/' || pathname === '';
+
+    // 로그아웃 함수
+    const handleLogout = () => {
+  
+      // 로컬 스토리지에서 토큰 제거 (필요 시)
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+  
+      console.log("로그아웃 완료: 토큰 제거됨");
+  
+      // 로그인 페이지로 리다이렉트
+      router.push("/login");
+    };
   
   return (
     <div className="w-[240px] bg-gray-900 flex flex-col items-center h-screen overflow-hidden sticky top-0 left-0 pt-10 pb-6 shadow-xl">
@@ -57,6 +71,14 @@ export function Sidebar() {
           </>
         
       </nav>
+
+      <button 
+        onClick={handleLogout}
+        className="flex items-center justify-between from-pink-500 to-rose-400 text-white rounded-full py-3 px-5 w-[200px] mt-auto shadow-md hover:bg-red-600 transition-all cursor-pointer active:scale-95"
+      >
+        <span className="text-sm font-medium">로그아웃</span>
+        <LogOut size={16} />
+      </button>
     </div>
   )
 }

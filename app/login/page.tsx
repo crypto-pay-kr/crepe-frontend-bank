@@ -2,36 +2,48 @@
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from "../../context/AuthContext";
+import { BankLogin } from "../../api/authApi";
 import Image from 'next/image';
 import Link from 'next/link';
 
 // 스타일 모듈 import 대신 인라인 스타일 및 Tailwind 사용
 function LoginPage() {
-    const [loginId, setLoginId] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const { login } = useAuthContext();
     const router = useRouter();
 
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         try {
-            setErrorMessage(null);
-            await login(loginId, password);
-            router.push('/dashboard');
-        } catch (error) {
-            setErrorMessage((error as Error).message);
+          setErrorMessage(null);
+    
+          // 로그인 API 호출
+          await login(email, password);
+        
+          // 로그인 성공 시 대시보드로 이동
+          router.push("/dashboard");
+        } catch (error: any) {
+            console.error("로그인 실패:", error.message);
+            setErrorMessage(error.message);
         }
-    };
+      };
+    
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-lg">
                 <div className="text-center">
-                    <div className="flex justify-center">
-                        <div className="bg-gradient-to-br from-pink-50 to-white p-4 rounded-xl w-24 h-24 flex items-center justify-center shadow-md mb-4">
-                            <div className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-500 font-bold text-3xl">CREPE</div>
-                        </div>
+                <div className="flex justify-center">
+                        <Image
+                            src="/crepe-newlogo2.png"
+                            alt="CREPE Logo"
+                            width={96}
+                            height={96}
+                            className="rounded-xl shadow-md mb-4"
+                        />
                     </div>
                     <h2 className="mt-4 text-3xl font-extrabold text-gray-900">CREPE 은행 관리자 시스템</h2>
                     <p className="mt-2 text-sm text-gray-600">안전한 관리자 접속을 위해 로그인해 주세요</p>
@@ -55,18 +67,18 @@ function LoginPage() {
                     
                     <div className="rounded-md -space-y-px">
                         <div className="mb-5">
-                            <label htmlFor="loginId" className="block text-sm font-medium text-gray-700 mb-1">
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                                 아이디
                             </label>
                             <input
-                                id="loginId"
-                                name="loginId"
+                                id="email"
+                                name="email"
                                 type="text"
                                 required
                                 className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-pink-500 focus:border-pink-500 focus:z-10 sm:text-sm"
                                 placeholder="아이디를 입력하세요"
-                                value={loginId}
-                                onChange={(e) => setLoginId(e.target.value)}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                         <div>
