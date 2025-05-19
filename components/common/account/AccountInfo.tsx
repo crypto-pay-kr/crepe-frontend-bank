@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { DisconnectConfirmModal } from "../disconnect-modal"
+import AccountRegistrationModal from "./manage-modal" 
 import { useState } from "react"
 
 // 계좌 정보 타입 정의
@@ -23,17 +24,28 @@ interface AccountInfoProps {
   title?: string;
   backPath?: string;
   accounts?: AccountInfo[];
-  onDisconnect?: (accountId: string, coinName: string) => void;
+  onModify?: (accountId: string, coinName: string) => void;
 }
 
 export default function AccountInfoComponent({
   title = "계좌 정보",
-  backPath = "/management/user",
+  backPath = "/dashboard/account",
   accounts = [],
-  onDisconnect = (accountId: string) => console.log(`${accountId} 계좌 연결 해제`)
+  onModify = (accountId: string) => console.log(`${accountId} 연결 관리`)
 }: AccountInfoProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedAccount, setSelectedAccount] = useState<AccountInfo | null>(null)
+
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false); 
+
+  const openManageModal = (account: AccountInfo) => {
+    setSelectedAccount(account);
+    setIsManageModalOpen(true);
+  };
+
+  const closeManageModal = () => {
+    setIsManageModalOpen(false);
+  };
 
   const openModal = (account: AccountInfo) => {
     setSelectedAccount(account)
@@ -44,12 +56,11 @@ export default function AccountInfoComponent({
     setModalOpen(false)
   }
 
-  const handleDisconnectConfirm = () => {
-    if (selectedAccount) {
-      onDisconnect(selectedAccount.coinAccount, selectedAccount.coinName)
-    }
-    closeModal()
-  }
+
+  const handleManageModalSubmit = (data: { depositorName: string; network: string; amount: string; tag: string }) => {
+    console.log("관리 모달 제출 데이터:", data);
+    setIsManageModalOpen(false); // 모달 닫기
+  };
 
   return (
     <div className="flex h-screen bg-white">
@@ -81,7 +92,8 @@ export default function AccountInfoComponent({
                   <th className="py-3 px-4 text-left font-medium text-gray-600">입금자 명</th>
                   <th className="py-3 px-4 text-left font-medium text-gray-600">코인 계좌</th>
                   <th className="py-3 px-4 text-left font-medium text-gray-600">Tag 계좌</th>
-                  <th className="py-3 px-4 text-left font-medium text-gray-600">balance</th>
+                  <th className="py-3 px-4 text-left font-medium text-gray-600">잔액</th>
+                  <th className="py-3 px-4 text-left font-medium text-gray-600">상태</th>
                   <th className="py-3 px-4 text-center font-medium text-gray-600">관리</th>
                 </tr>
               </thead>
@@ -98,12 +110,16 @@ export default function AccountInfoComponent({
                       <div className="font-medium">{account.balance.fiat}</div>
                       <div className="text-sm text-gray-500">{account.balance.crypto}</div>
                     </td>
+                    <td className="py-4 px-4">
+                      <div className="font-medium">{account.balance.fiat}</div>
+                      <div className="text-sm text-gray-500">{account.balance.crypto}</div>
+                    </td>
                     <td className="py-4 px-4 text-center">
                       <button
-                        onClick={() => openModal(account)}
-                        className="px-4 py-1 rounded-md text-sm border border-gray-300 hover:bg-gray-50"
+                        onClick={() => openManageModal(account)} 
+                        className="px-4 py-1 rounded-md text-sm border text-gray-800 border-gray-300 hover:bg-gray-50"
                       >
-                        연결 해제
+                        연결 관리
                       </button>
                     </td>
                   </tr>
@@ -114,13 +130,12 @@ export default function AccountInfoComponent({
         </div>
       </div>
 
-      {/* 연결 해제 확인 모달 */}
+      {/* 관리 모달 */}
       {selectedAccount && (
-        <DisconnectConfirmModal
-          isOpen={modalOpen}
-          onClose={closeModal}
-          onConfirm={handleDisconnectConfirm}
-          accountInfo={selectedAccount}
+        <AccountRegistrationModal
+          isOpen={isManageModalOpen}
+          onClose={closeManageModal}
+          onSubmit={handleManageModalSubmit}
         />
       )}
     </div>
