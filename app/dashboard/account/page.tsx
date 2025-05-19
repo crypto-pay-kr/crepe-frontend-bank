@@ -1,85 +1,110 @@
 'use client'
 import { useParams, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
-import AccountInfoComponent from "@/components/common/account/AccountInfo"
-import { ArrowLeft, Link } from "lucide-react";
+
+import AccountRegistrationModal from "@/components/account/ManageModal";
+import AccountHeader from "@/components/account/AccountHeader";
 import { fetchBankAccounts } from "@/api/bankAccountApi";
+import AccountInfoComponent from "@/components/account/AccountInfo";
+import UpbitWebSocket from "@/api/UpbitWebSocket";
 
 interface MappedAccount {
-  coinName: string
-  depositorName: string
-  coinAccount: string
-  tagAccount?: string
-  balance: {
-    fiat: string
-    crypto: string
-  }
+    bankName: string
+    coinCurrency: string
+    coinName: string
+    depositorName: string
+    coinAccount: string
+    tagAccount?: string
+    status: string
+    balance: {
+        fiat: string
+        crypto: string
+    }
 }
 
-
-
 export default function BankAccountPage() {
-  // URL 파라미터에서 은행 ID 가져오기
-  const params = useParams();
-  const bankId = params.id;
 
-  // URL 쿼리 파라미터에서 은행 이름 가져오기
-  const searchParams = useSearchParams();
-  const bankName = searchParams.get('name') || "은행";
+    // URL 쿼리 파라미터에서 은행 이름 가져오기
+    const searchParams = useSearchParams();
 
-  const [bankAccounts, setBankAccounts] = useState<MappedAccount[]>([])
+    const [bankName, setBankName] = useState<string>(""); // 은행 이름 상태
+    const [bankAccounts, setBankAccounts] = useState<MappedAccount[]>([])
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false); // 모달 상태
+    const [modalData, setModalData] = useState<MappedAccount | null>(null); // 초기 데이터 상태
 
-  useEffect(() => {
-    fetchBankAccounts()
-      .then((data) => {
-        // 응답 데이터 -> AccountInfoComponent에서 쓰는 형식으로 변환
-        const mappedData = data.map((item: any) => ({
-          coinName: item.coinName,
-          depositorName: item.bankName,
-          coinAccount: item.accountAddress,
-          tagAccount: item.tag || "",
-          balance: {
-            fiat: "0 KRW", // fiat 값이 없으므로 예시로 "0 KRW" 고정
-            crypto: `${item.balance} ${item.currency}`
-          }
-        }))
-        setBankAccounts(mappedData)
-      })
-      .catch((err) => console.error(err))
-  }, [])
+    useEffect(() => {
+        fetchBankAccounts()
+            .then((data) => {
+                // 응답 데이터 -> AccountInfoComponent에서 쓰는 형식으로 변환
+                const mappedData = data.map((item: any) => ({
+                    bankName: item.bankName,
+                    coinCurrency: item.currency,
+                    coinName: item.coinName,
+                    depositorName: item.bankName,
+                    coinAccount: item.accountAddress,
+                    status: item.status,
+                    tagAccount: item.tag || "",
+                    balance: {
+                        fiat: "0 KRW", // fiat 값이 없으므로 예시로 "0 KRW" 고정
+                        crypto: `${item.balance} ${item.currency}`
+                    }
+                }))
+                setBankAccounts(mappedData)
+            })
+            .catch((err) => console.error(err))
 
-  const handleDisconnectBankAccount = (accountId: string, coinName: string) => {
-    console.log(`${bankName} ${coinName} 계좌 연결 해제: ${accountId}`)
-    // 실제 구현에서는 API 호출 등을 통해 계좌 연결 해제 처리
-  }
+        fetchBankAccounts(); // 계좌 정보 가져오기
+
+    }, [])
+
+    const handleAddAccount = () => {
+        setModalData(null); // 새 계좌 등록이므로 초기 데이터를 null로 설정
+        setIsManageModalOpen(true); // 모달 열기
+    };
 
 
-  return (
-    <div className="border-b border-gray-200">
-    <div className="flex items-center p-4 h-16">
-      <Link className="mr-4">
-        <ArrowLeft className="w-6 h-6 text-gray-700" />
-      </Link>
-      <h1 className="text-xl font-medium text-gray-800">우리은행</h1>
-      <div className="ml-auto">
-        <Link href="#" className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 text-sm font-medium">
-          추가
-        </Link>
-      </div>
-    </div>
-    <div className="flex text-sm px-4 pb-3 text-gray-500">
-      <span>은행</span>
-      <span className="mx-2">/</span>
-      <span>은행상세 관리</span>
-      <span className="mx-2">/</span>
-      <span>연결된 계좌 관리</span>
-    </div>
+    const closeManageModal = () => {
+        setIsManageModalOpen(false); // 모달 닫기
+    };
 
-    <AccountInfoComponent
-      title={`${bankName} 계좌 정보`}
-      accounts={bankAccounts}
-      onDisconnect={handleDisconnectBankAccount}
-    />
-  </div>
-)
+    const handleModalSubmit = (data: { depositorName: string; currency: string; address: string; tag: string }) => {
+        console.log("모달 제출 데이터:", data);
+        // 실제 구현에서는 API 호출 등을 통해 계좌 추가 또는 수정 처리
+        setIsManageModalOpen(false); // 모달 닫기
+    };
+
+
+    return (
+        <div className="flex-1 p-8 overflow-auto bg-gray-50">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+                <AccountHeader bankName={bankName} onAddAccount={handleAddAccount} />
+
+                <AccountInfoComponent
+                    title="계좌 정보"
+                    backPath="/dashboard/account"
+                    accounts={bankAccounts}
+                />
+
+                {/* 모달 컴포넌트 */}
+                <AccountRegistrationModal
+                    isOpen={isManageModalOpen}
+                    onClose={closeManageModal}
+                    onSubmit={handleModalSubmit}
+                    initialData={
+                        modalData
+                            ? {
+                                bankName: modalData.bankName,
+                                addressResponse: {
+                                    currency: modalData.coinCurrency,
+                                    address: modalData.coinAccount,
+                                    tag: modalData.tagAccount || null,
+                                    status: "ACTIVE"
+                                },
+                            }
+                            : undefined
+                    }
+                />
+            </div>
+        </div>
+    )
 }
