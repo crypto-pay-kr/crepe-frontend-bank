@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import ClientLayout from "./client-layout";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { WebSocketProvider } from "@/context/WebSocketContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +28,9 @@ export default function RootLayout({
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
+          <WebSocketProvider>
           <ClientLayout>{children}</ClientLayout>
+        </WebSocketProvider>
         </AuthProvider>
       </body>
     </html>
