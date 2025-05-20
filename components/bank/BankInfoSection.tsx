@@ -10,7 +10,7 @@ interface BankInfoSectionProps {
   bankPhoneNumber?: string;
   bankEmail?: string;
   bankCode?: string;
-  onPhoneChange?: () => void; 
+  onPhoneChange?: () => void;
 }
 
 export default function BankInfoSection({
@@ -19,7 +19,7 @@ export default function BankInfoSection({
   bankPhoneNumber = "",
   bankEmail = "",
   bankCode = "",
-  onPhoneChange = () => {}, 
+  onPhoneChange = () => { },
 }: BankInfoSectionProps) {
 
   const [phoneInput, setPhoneInput] = useState(bankPhoneNumber);
@@ -90,8 +90,8 @@ export default function BankInfoSection({
             <input
               type="text"
               value={phoneInput}
-              readOnly={!isEditing}       
-              onFocus={() => setIsEditing(true)} 
+              readOnly={!isEditing}
+              onFocus={() => setIsEditing(true)}
               onChange={(e) => setPhoneInput(e.target.value)}
               className="w-10/12 p-2 border text-gray-500 border-gray-300 rounded-lg"
             />
@@ -131,7 +131,12 @@ export default function BankInfoSection({
         </div>
 
         <div className="space-y-3">
-          <Link href="/dashboard/account" className="text-xs text-gray-500">
+          <Link
+            href={{
+              pathname: "/dashboard/account",
+            }}
+            className="text-xs text-gray-500"
+          >
             <button className="w-full p-3 text-left border border-gray-300 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors mb-1">
               <span>은행 계좌 관리</span>
               <svg

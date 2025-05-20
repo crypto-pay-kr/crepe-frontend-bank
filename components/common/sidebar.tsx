@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { NavItem } from "./NavItem";
 
 
-export function Sidebar() {
+export const Sidebar: React.FC<{ bankName: string }> = ({ bankName }) => {
   const pathname = usePathname();
   const router = useRouter();
   

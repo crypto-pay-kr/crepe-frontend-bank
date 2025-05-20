@@ -5,6 +5,7 @@ import ClientLayout from "./client-layout";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { WebSocketProvider } from "@/context/WebSocketContext";
+import { BankProvider } from "@/context/BankContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +30,12 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <WebSocketProvider>
-          <ClientLayout>{children}</ClientLayout>
-        </WebSocketProvider>
+            <BankProvider>
+              <ClientLayout>
+                {children}
+              </ClientLayout>
+            </BankProvider>
+          </WebSocketProvider>
         </AuthProvider>
       </body>
     </html>
