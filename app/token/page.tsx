@@ -34,11 +34,15 @@ export default function BankTokenRequests() {
 
   const handleApproveRequest = () => {
     console.log(`${selectedBank} 승인 처리`);
-    // 실제 구현에서는 API 호출 등을 통해 승인 처리
     setIsDetailsModalOpen(false);
   };
 
   const handleAddToken = () => {
+    if (tokenRequests.length > 0) {
+      alert("이미 생성된 토큰이 존재합니다");
+      return;
+    }
+  
     setSelectedPortfolioDetails([]); // 신규 추가는 빈 포트폴리오로 설정
     setSelectedTotalSupplyAmount(0); // 신규 추가는 총 공급량 0으로 설정
     setIsAddTokenModalOpen(true);
@@ -131,7 +135,6 @@ export default function BankTokenRequests() {
         }}
         onSubmit={handleApproveRequest}
         requestData={!isAddTokenModalOpen ? selectedRequest : undefined}
-        totalSupplyAmount={selectedTotalSupplyAmount}
         isAddMode={isAddTokenModalOpen}
       />
     </div>
