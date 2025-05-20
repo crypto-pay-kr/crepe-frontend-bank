@@ -2,12 +2,13 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-
+import { useBankContext } from "@/context/BankContext";
 import { Sidebar } from '@/components/common/sidebar';
 
 export default function ClientLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { bankName } = useBankContext();
   const pathname = usePathname();
   const isLoginPage = pathname === '/login';
 
@@ -17,12 +18,12 @@ export default function ClientLayout({
   }
 
   return (
-      <div className="flex h-screen">
-        <Sidebar />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
-        );
-      
+    <div className="flex h-screen">
+      <Sidebar bankName={bankName} />
+      <main className="flex-1 overflow-auto">
+        {children}
+      </main>
+    </div>
+  );
+
 }

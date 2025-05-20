@@ -3,34 +3,11 @@
 import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { getAccountByCurrency } from "@/api/bankAccountApi";
-import { fetchBankAccounts } from "@/api/bankAccountApi";
-import { fetchCoinPrices } from "@/api/coinApi";
-
 import { useState, useEffect } from "react"
 import AccountRegistrationModal from "./ManageModal";
+import { TickerData } from "@/types/Coin";
+import { AccountInfo } from "@/types/Account";
 
-// 계좌 정보 타입 정의
-interface AccountBalance {
-  krw: string;
-  crypto: string;
-}
-
-interface TickerData {
-  type: string;
-  code: string;
-  trade_price: number;
-  change: string;
-}
-
-interface AccountInfo {
-  coinName: string;
-  coinCurrency: string;
-  depositorName: string;
-  coinAccount: string;
-  tagAccount?: string;
-  balance: AccountBalance;
-  status: string;
-}
 
 interface AccountInfoProps {
   title?: string;

@@ -5,6 +5,8 @@ import BankBalanceSection from "@/components/bank/bank-balance-section";
 import { fetchBankInfoDetail } from "@/api/bankInfoApi";
 import BankHeader from "@/components/common/bank-header";
 import BankInfoSection from "@/components/bank/BankInfoSection";
+import { useBankContext } from "@/context/BankContext";
+import { BankInfoDetail } from "@/types/Bank";
 
 
 // 간단한 더미 데이터 타입 및 생성 함수
@@ -15,16 +17,6 @@ interface CandleData {
   high: number;
   low: number;
   isUp: boolean;
-}
-
-
-interface BankInfoDetail {
-  bankId: number;
-  bankName: string;
-  bankImageUrl: string;
-  bankPhoneNumber: string;
-  bankEmail: string;
-  bankCode: string;
 }
 
 // 더미 데이터 생성 함수
@@ -324,18 +316,28 @@ const CryptoChart: React.FC<{ data: CandleData[] }> = ({ data }) => {
 
 // 은행 상세 페이지 컴포넌트
 export default function BankDetailPage() {
+  const { bankName, setBankName } = useBankContext(); 
   const [selectedCoin, setSelectedCoin] = useState("XRP");
-  const [bankInfo, setBankInfo] = useState<BankInfoDetail | null>(null);
+  const [bankInfo, setBankInfo] = useState<BankInfoDetail| null>(null);
 
   // 은행 정보를 가져오는 함수
   const loadBankInfo = async () => {
     try {
       const data = await fetchBankInfoDetail();
       setBankInfo(data);
+      setBankName(data.bankName); 
     } catch (error) {
       console.error("Failed to fetch bank info:", error);
     }
   };
+
+  useEffect(() => {
+    loadBankInfo(); // 컴포넌트가 마운트될 때 은행 정보 가져오기
+  }, []);
+
+  useEffect(() => {
+    console.log("Current bankName:", bankName); // bankName 로그 출력
+  }, [bankName]); // bankName이 변경될 때마다 실행
 
 
   // 은행 삭제 함수 (예시)
@@ -344,9 +346,7 @@ export default function BankDetailPage() {
     // 실제 삭제 로직 추가 필요
   };
 
-  useEffect(() => {
-    loadBankInfo(); // 컴포넌트가 마운트될 때 은행 정보 가져오기
-  }, []);
+
 
   if (!bankInfo) {
     return <div>Loading...</div>;
@@ -426,7 +426,7 @@ export default function BankDetailPage() {
 
           {/* Bank Balance Section */}
           <div className="bg-white p-4 rounded-lg shadow-sm">
-            <BankBalanceSection />
+            <BankBalanceSection  />
           </div>
 
           {/* Token Value Section */}

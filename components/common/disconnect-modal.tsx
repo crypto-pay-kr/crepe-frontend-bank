@@ -1,13 +1,8 @@
 "use client"
 
+import { AccountInfo } from "@/types/Account";
 import { AlertTriangle } from "lucide-react"
 
-// 연결 해제 확인 모달
-interface AccountInfo {
-  depositorName: string;
-  coinName: string;
-  coinAccount: string;
-}
 
 export function DisconnectConfirmModal({ isOpen, onClose, onConfirm, accountInfo }: { isOpen: boolean; onClose: () => void; onConfirm: () => void; accountInfo: AccountInfo }) {
   if (!isOpen) return null
