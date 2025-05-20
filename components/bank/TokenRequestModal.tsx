@@ -1,58 +1,97 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, ChevronDown, Plus } from "lucide-react";
+import { X, ChevronDown, Plus, Trash2 } from "lucide-react";
 import { TokenConfirmModal } from "./TokenConfirmModal";
-import { createBankToken } from "@/api/tokenApi";
+import { createBankToken, recreateBankToken } from "@/api/tokenApi";
 import { useTickerData } from "@/hooks/useTickerData";
 import { coinMapping } from "@/types/Coin";
-
+import { PortfolioCoin, PortfolioItem } from "@/types/Token";
 
 interface TokenRequestModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (data: any) => void;
-    requestType: "new" | "view";
-    portfolioDetails: {
-        coinName: string;
-        coinCurrency: string;
-        prevAmount: number | null;
-        prevPrice: number | null;
-        updateAmount: number;
-        updatePrice: number;
-    }[];
-    totalSupplyAmount: number;
+    requestData?: any; // isAddMode가 false일 때만 전달되는 전체 request
+    isAddMode: boolean; // 추가 모드인지 확인
 }
+
+interface RequestDTO {
+    tokenName: string;
+    tokenCurrency: string;
+    changeReason: string;
+    portfolioCoins: PortfolioCoin[];
+}
+
 
 export default function TokenRequestModal({
     isOpen,
     onClose,
     onSubmit,
-    requestType,
-    portfolioDetails,
-    totalSupplyAmount,
+    requestData,
+    isAddMode,
 }: TokenRequestModalProps) {
     if (!isOpen) return null;
 
     const tickerData = useTickerData();
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showTokenInput, setShowTokenInput] = useState(false);
+    const [selectedToken, setSelectedToken] = useState("");
+    const [tokenAmount, setTokenAmount] = useState("");
 
-    // formData에 bankName 포함 (기존 값들은 그대로 유지)
-    const [formData, setFormData] = useState({
-        requestType: requestType === "new" ? "NEW" : "UPDATE",
-        tokenName: requestType === "new" ? "" : "",
-        currency: requestType === "new" ? "" : "",
-        // 기존 portfolio는 초기값으로 전달받은 portfolioDetails를 매핑 처리 (view인 경우)
-        portfolio:
-            requestType === "new"
-                ? []
-                : portfolioDetails.map((item) => ({
-                    currency: item.coinCurrency,
-                    amount: item.updateAmount.toString(),
-                    price: item.updatePrice.toString(),
-                })),
-        estimatedValue: "1.23KRW",
-        totalValue: "23,231,123,123,230KRW",
+    // readOnly 모드인지 확인
+    const isReadOnlyMode = !isAddMode && requestData;
+
+    // 초기 상태 정의
+    const [formData, setFormData] = useState(() => {
+        if (isReadOnlyMode) {
+            return {
+                tokenName: requestData.tokenName || "",
+                currency: requestData.currency || "",
+                changeReason: requestData.changeReason || "",
+                totalValue: "",
+                portfolio:
+                    requestData.portfolioDetails?.map((item: any) => ({
+                        coinName: item.coinName,
+                        currency: item.coinCurrency,
+                        currentAmount: item.updateAmount, // 기존(읽기 전용)
+                        newAmount: "", // 새로 수정 가능
+                    })) || [],
+            };
+        }
+        // isAddMode
+        return {
+            tokenName: "",
+            currency: "",
+            changeReason: "",
+            totalValue: "",
+            portfolio: [],
+        };
     });
+
+    // isAddMode일 때: portfolio 변경 시 totalValue 계산
+    useEffect(() => {
+        if (isAddMode) {
+            const total = formData.portfolio.reduce((acc: number, item: PortfolioItem) => {
+                const price = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
+                const amount = parseFloat(item.amount || "0");
+                return acc + price * amount;
+            }, 0);
+            setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
+        }
+    }, [formData.portfolio, tickerData, isAddMode]);
+
+    // isAddMode가 아닐 때: requestData 기반으로 totalValue 계산
+    useEffect(() => {
+        if (!isAddMode && requestData) {
+            const total = formData.portfolio.reduce((acc: number, item: any) => {
+                const price = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
+                const amount = parseFloat(item.newAmount || item.currentAmount || "0"); // newAmount 우선
+                return acc + price * amount;
+            }, 0);
+            setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
+        }
+    }, [formData.portfolio, tickerData, isAddMode, requestData]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -62,20 +101,28 @@ export default function TokenRequestModal({
         }));
     };
 
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [showTokenInput, setShowTokenInput] = useState(false);
-    const [selectedToken, setSelectedToken] = useState("");
-    const [tokenAmount, setTokenAmount] = useState("");
+    // 새로 입력할 newAmount 변경 핸들러
+    const handleNewAmountChange = (index: number, value: string) => {
+        setFormData((prev) => {
+            const updated = [...prev.portfolio];
+            updated[index] = { ...updated[index], newAmount: value };
+            return { ...prev, portfolio: updated };
+        });
+    };
 
-    // 사용자가 토큰 추가 버튼을 눌렀을 때,
-    // 선택한 토큰(selectedToken)에 대해, coinName은 coinMapping[selectedToken],
-    // 수량은 tokenAmount, 현재 가격은 coinPrices[selectedToken]를 포함하도록 추가
+    const handleRemoveCurrency = (index: number) => {
+        setFormData((prev) => {
+            const updatedPortfolio = [...prev.portfolio];
+            updatedPortfolio.splice(index, 1); // 해당 인덱스의 항목 제거
+            return { ...prev, portfolio: updatedPortfolio };
+        });
+    };
+
     const handleAddTokenToPortfolio = () => {
         if (selectedToken && tokenAmount) {
             const newCoin = {
-                currency: selectedToken, // 예: "XRP", "SOL", "USDT"
-                amount: tokenAmount, // 입력한 수량 (문자열)
-                price: "-", // 기본값 그대로 유지
+                currency: selectedToken,
+                amount: tokenAmount,
             };
             setFormData((prev) => ({
                 ...prev,
@@ -92,42 +139,43 @@ export default function TokenRequestModal({
     };
 
     const handleConfirm = async () => {
-        const requestDTO = {
-            tokenName: formData.tokenName,
-            tokenCurrency: formData.currency,
-            portfolioCoins: formData.portfolio.map((item) => {
-                const mappedCoinName = coinMapping[item.currency] || item.currency;
-                const currentPrice = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
-                return {
-                    coinName: mappedCoinName,
-                    amount: parseFloat(item.amount),
+        if (isReadOnlyMode) {
+            // 수정(재요청) 모드: 기존 데이터 + newAmount -> recreateBankToken
+            const requestDTO = {
+                tokenName: formData.tokenName,
+                tokenCurrency: formData.currency,
+                changeReason: formData.changeReason,
+                portfolioCoins: formData.portfolio.map((item: any) => ({
+                    coinName: item.coinName,
                     currency: item.currency,
-                    currentPrice,
-                };
-            }),
-        };
-
-        try {
+                    amount: parseFloat(item.newAmount) || 0,
+                    currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
+                })),
+            };
+            const result = await recreateBankToken(requestDTO);
+            console.log("재요청 성공:", result);
+            onSubmit(requestDTO);
+        } else {
+            const requestDTO: RequestDTO = {
+                tokenName: formData.tokenName,
+                tokenCurrency: formData.currency,
+                changeReason: formData.changeReason,
+                // 예: 새로 추가된 portfolio에서 amount 등을 읽어 DTO 구성
+                portfolioCoins: formData.portfolio.map((item: PortfolioItem): PortfolioCoin => ({
+                    coinName: coinMapping[item.currency] || item.currency,
+                    currency: item.currency,
+                    amount: parseFloat(item.amount ?? "") || 0,
+                    // currentPrice를 tickerData에서 가져올 수 있음
+                    currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
+                })),
+            };
             const result = await createBankToken(requestDTO);
-            console.log("토큰 생성 성공:", result);
-            onSubmit(result);
-        } catch (error) {
-            console.error("토큰 생성 실패:", error);
+            console.log("생성 로직 DTO:", requestDTO);
+            // 실제 createBankToken 호출
+            onSubmit(requestDTO);
         }
         setShowConfirmModal(false);
         onClose();
-    };
-
-    const handleTokenSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedToken(e.target.value);
-    };
-
-    const handleTokenAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setTokenAmount(e.target.value);
-    };
-
-    const handleAddToken = () => {
-        setShowTokenInput(true);
     };
 
     return (
@@ -135,53 +183,83 @@ export default function TokenRequestModal({
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
                 <div className="bg-white rounded-lg w-full max-w-lg">
                     <div className="flex justify-between items-center p-4 bg-black">
-                        <h2 className="text-lg font-medium text-[#F47C98]">토큰 생성</h2>
+                        <h2 className="text-lg font-medium text-[#F47C98]">
+                            {isAddMode ? "토큰 추가" : "토큰 상세 확인"}
+                        </h2>
                         <button onClick={onClose} className="text-[#F47C98]">
                             <X size={24} />
                         </button>
                     </div>
                     <div className="p-6">
+                        {/* 토큰 이름 / 심볼 */}
                         <div className="mb-6">
-                            <label className="block text-sm text-gray-700 font-medium mb-2">요청 정보</label>
-                            <div className="mb-4">
-                                <button className="bg-blue-900 text-white px-6 py-2 rounded-md text-gray-500">
-                                    {requestType === "new" ? "신규" : "변경"}
-                                </button>
-                            </div>
+                            <label className="block text-sm text-gray-700 font-medium mb-2">토큰 이름</label>
+                            <input
+                                type="text"
+                                name="tokenName"
+                                value={formData.tokenName}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                readOnly={isReadOnlyMode}
+                            />
                         </div>
-                        {requestType === "new" && (
-                            <>
-                                <div className="mb-6">
-                                    <label className="block text-sm text-gray-700 font-medium mb-2">토큰 이름</label>
-                                    <input
-                                        type="text"
-                                        name="tokenName"
-                                        value={formData.tokenName}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
-                                    />
-                                </div>
-                                <div className="mb-6">
-                                    <label className="block text-sm text-gray-700 font-medium mb-2">토큰 심볼</label>
-                                    <input
-                                        type="text"
-                                        name="currency"
-                                        value={formData.currency}
-                                        onChange={handleChange}
-                                        className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
-                                    />
-                                </div>
-                            </>
+                        <div className="mb-6">
+                            <label className="block text-sm text-gray-700 font-medium mb-2">토큰 심볼</label>
+                            <input
+                                type="text"
+                                name="currency"
+                                value={formData.currency}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                readOnly={isReadOnlyMode}
+                            />
+                        </div>
+                        {/* 변경 사유 (읽기 전용 모드일 때만) */}
+                        {!isAddMode && (
+                            <div className="mb-6">
+                                <label className="block text-sm text-gray-700 font-medium mb-2">변경 사유</label>
+                                <input
+                                    type="text"
+                                    name="changeReason"
+                                    value={formData.changeReason}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({ ...prev, changeReason: e.target.value }))
+                                    }
+                                    className="w-full border rounded-md p-3 text-gray-500"
+                                />
+                            </div>
                         )}
                         <div className="mb-6">
                             <label className="block text-sm text-gray-700 font-medium mb-2">포트폴리오 구성</label>
                             <div className="space-y-2">
-                                {formData.portfolio.map((item, index) => (
-                                    <div key={index} className="border border-gray-300 rounded-md p-3 flex items-center">
-                                        <span className="w-16 text-gray-500">{item.currency}</span>
-                                        <span className="mx-2 text-gray-500">{item.amount}</span>
-                                        <span className="mx-2 text-gray-500">→</span>
-                                        <span className="mx-2 text-gray-500">-</span>
+                                {formData.portfolio.map((item: PortfolioItem, index: number) => (
+                                    <div
+                                        key={index}
+                                        className="border border-gray-300 rounded-md p-3 flex items-center justify-between"
+                                    >
+                                        <div className="flex items-center">
+                                            <span className="w-16 text-gray-500">{item.currency}</span>
+                                            {/* currentAmount(읽기 전용) */}
+                                            {item.currentAmount !== undefined && (
+                                                <span className="mx-2 text-gray-500">
+                                                    {item.currentAmount}
+                                                </span>
+                                            )}
+                                            <span className="mx-2 text-gray-500">→</span>
+                                            {/* newAmount 입력 가능 */}
+                                            <input
+                                                type="text"
+                                                className="border border-gray-300 rounded-md p-1 w-20 text-gray-500"
+                                                value={item.newAmount ?? item.amount ?? ""}
+                                                onChange={(e) => handleNewAmountChange(index, e.target.value)}
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handleRemoveCurrency(index)}
+                                            className="text-gray-500 hover:text-red-500"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
@@ -191,7 +269,7 @@ export default function TokenRequestModal({
                                         <div className="relative flex-1">
                                             <select
                                                 value={selectedToken}
-                                                onChange={handleTokenSelect}
+                                                onChange={(e) => setSelectedToken(e.target.value)}
                                                 className="w-full appearance-none border border-gray-300 rounded-md p-2 pr-8 text-gray-500"
                                             >
                                                 <option value="">토큰 선택</option>
@@ -206,7 +284,7 @@ export default function TokenRequestModal({
                                         <input
                                             type="text"
                                             value={tokenAmount}
-                                            onChange={handleTokenAmountChange}
+                                            onChange={(e) => setTokenAmount(e.target.value)}
                                             placeholder="수량"
                                             className="flex-1 border border-gray-300 rounded-md p-2 text-gray-500"
                                         />
@@ -228,42 +306,50 @@ export default function TokenRequestModal({
                                 </div>
                             ) : (
                                 <button
-                                    onClick={handleAddToken}
+                                    onClick={() => setShowTokenInput(true)}
                                     className="w-full border border-gray-300 rounded-md p-3 flex items-center justify-center text-gray-500"
                                 >
                                     <Plus size={18} />
                                 </button>
                             )}
                         </div>
-                        <div className="mb-4 p-4 bg-gray-100 rounded">
+                        <div className="mb-4 p-4 bg-gray-100 rounded h-40 overflow-y-auto">
                             <h3 className="font-bold mb-2 text-gray-700">실시간 시세 데이터</h3>
                             {Object.entries(tickerData).map(([code, data]) => (
                                 <div key={code} className="mb-2 text-black">
-                                    <span className="font-medium text-black">{code}:</span> {data.trade_price.toLocaleString()} KRW
-                                    <span className={`ml-2 ${data.change === 'RISE' ? 'text-red-500' : data.change === 'FALL' ? 'text-blue-500' : ''}`}>
+                                    <span className="font-medium text-black">{code}:</span>{" "}
+                                    {data.trade_price.toLocaleString()} KRW
+                                    <span
+                                        className={`ml-2 ${data.change === "RISE"
+                                            ? "text-red-500"
+                                            : data.change === "FALL"
+                                                ? "text-blue-500"
+                                                : ""
+                                            }`}
+                                    >
                                         ({data.signed_change_rate.toFixed(2)}%)
                                     </span>
                                 </div>
                             ))}
                         </div>
-
-
+                        {/* totalValue 입력 (직접 계산/수정 용도로 예시) */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">예상 토큰 가치(현재 기준)</label>
-                            <div className="flex items-center border border-gray-300 rounded-md p-3 mb-2">
-                                <span className="flex-1 text-gray-500">{formData.estimatedValue}</span>
-                                <span className="text-indigo-600">3.4% 감소</span>
-                            </div>
-                            <div className="border border-gray-300 rounded-md p-3 text-gray-500">
-                                <span>{formData.totalValue}</span>
-                            </div>
+                            <input
+                                type="text"
+                                name="totalValue"
+                                value={Number(formData.totalValue).toLocaleString()}
+                                onChange={handleChange}
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                placeholder="토큰 가치"
+                            />
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={handleSubmit}
                                 className="px-6 py-3 bg-blue-900 text-white rounded-md font-medium flex-1 text-gray-500"
                             >
-                                요청 추가
+                                {isAddMode ? "요청 추가" : "요청 승인"}
                             </button>
                             <button
                                 onClick={onClose}

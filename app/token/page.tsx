@@ -1,63 +1,53 @@
-"use client"
-import { useState, useEffect } from "react"
-import { Search, ChevronLeft, ChevronRight, X, Check } from "lucide-react"
-import { getTokenHistory } from "@/api/tokenApi"
-import RejectionReasonModal from "@/components/token/rejection-reason-modal"
-import TokenRequestModal from "@/components/bank/TokenRequestModal"
-import SubHeader from "@/components/common/SubHeader"
-
+"use client";
+import { useState, useEffect } from "react";
+import { Search, ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { getTokenHistory } from "@/api/tokenApi";
+import TokenRequestModal from "@/components/bank/TokenRequestModal";
+import SubHeader from "@/components/common/SubHeader";
 
 export default function BankTokenRequests() {
-
   const [tokenRequests, setTokenRequests] = useState<any[]>([]);
-  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isAddTokenModalOpen, setIsAddTokenModalOpen] = useState(false);
-  const [selectedBank, setSelectedBank] = useState("")
-  const [selectedRequestType, setSelectedRequestType] = useState<"view" | "new">("view")
+  const [selectedBank, setSelectedBank] = useState("");
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedPortfolioDetails, setSelectedPortfolioDetails] = useState<any[]>([]);
+  const [selectedTotalSupplyAmount, setSelectedTotalSupplyAmount] = useState(0);
 
   useEffect(() => {
     getTokenHistory(0, 10)
       .then((data) => {
-        setTokenRequests(data);
+        const sortedData = data.sort(
+          (a: any, b: any) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+        setTokenRequests(sortedData);
       })
       .catch((err) => console.error(err));
   }, []);
 
-  const handleReject = (bankName: string, requestType: "view" | "new") => {
-    // 모달 열기 전에 선택된 은행과 요청 종류 저장
-    setSelectedBank(bankName)
-    setSelectedRequestType(requestType)
-    setIsRejectionModalOpen(true)
-  }
-
-  const handleConfirmReject = (reason: string) => {
-    console.log(`${selectedBank}의 ${selectedRequestType} 반려 처리: ${reason}`)
-    // 실제 구현에서는 API 호출 등을 통해 반려 처리
-    setIsRejectionModalOpen(false)
-  }
-
-  const handleConfirm = (bankName: string, requestType: "view" | "new") => {
-    // 요청 확인 버튼 클릭 시 상세 모달 표시
-    setSelectedBank(bankName)
-    setSelectedRequestType(requestType)
-    setIsDetailsModalOpen(true)
-  }
+  const handleConfirm = (request: any) => {
+    // 요청된 전체 데이터 셋을 그대로 보관
+    setSelectedRequest(request);
+    setIsDetailsModalOpen(true);
+  };
 
   const handleApproveRequest = () => {
-    console.log(`${selectedBank}의 ${selectedRequestType} 승인 처리`)
+    console.log(`${selectedBank} 승인 처리`);
     // 실제 구현에서는 API 호출 등을 통해 승인 처리
-    setIsDetailsModalOpen(false)
-  }
+    setIsDetailsModalOpen(false);
+  };
 
   const handleAddToken = () => {
-    setIsAddTokenModalOpen(true); // 추가된 핸들러
+    setSelectedPortfolioDetails([]); // 신규 추가는 빈 포트폴리오로 설정
+    setSelectedTotalSupplyAmount(0); // 신규 추가는 총 공급량 0으로 설정
+    setIsAddTokenModalOpen(true);
   };
 
   return (
     <div className="flex-1 h-screen p-8 overflow-auto bg-gray-50">
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <SubHeader bankName="신한은행" onAddAccount={handleAddToken} />
+        <SubHeader bankName="" onAddAccount={handleAddToken} />
         {/* 헤더 섹션 */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -82,24 +72,26 @@ export default function BankTokenRequests() {
         {/* 토큰 요청 테이블 */}
         <div className="px-6 pb-6">
           <div className="overflow-x-auto rounded-lg border border-gray-100">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm">토큰 정보</th>
-                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm">요청 날짜</th>
-                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-40">변경 사유</th>
-                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-40">반려 사유</th>
-                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm">상태</th>
-                  <th className="py-3 px-4 text-middle font-bold text-gray-500 text-sm">관리</th>
+                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-1/8">종류</th>
+                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-1/6">토큰 정보</th>
+                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-1/5">요청 날짜</th>
+                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-1/5">변경 사유</th>
+                  <th className="py-3 px-4 text-left font-bold text-gray-500 text-sm w-1/5">반려 사유</th>
+                  <th className="py-3 px-4 text-center font-bold text-gray-500 text-sm w-1/6">상태</th>
+                  <th className="py-3 px-4 text-center font-bold text-gray-500 text-sm w-1/6">관리</th>
                 </tr>
               </thead>
               <tbody>
                 {tokenRequests.map((request, index) => (
                   <tr key={request.tokenHistoryId || index} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-4 text-gray-800">
+                    <td className="py-4 px-4 text-gray-600 w-1/6">{request.requestType}</td>
+                    <td className="py-4 px-4 text-gray-800 w-1/4">
                       {`${request.tokenName} (${request.currency})`}
                     </td>
-                    <td className="py-4 px-4 text-gray-600">
+                    <td className="py-4 px-4 text-gray-600 w-1/5">
                       {new Date(request.createdAt).toLocaleString("ko-KR", {
                         year: "numeric",
                         month: "2-digit",
@@ -108,20 +100,15 @@ export default function BankTokenRequests() {
                         minute: "2-digit",
                       })}
                     </td>
-                    <td className="py-4 px-4 text-gray-600">{request.changeReason || " - "}</td>
-                    <td className="py-4 px-4 text-gray-600">{request.rejectReason || " - "}</td>
-                    <td className="py-4 px-4 text-gray-600">{request.requestType}</td>
-                    <td className="py-4 px-4">
-                      <div className="flex justify-end gap-2">
+                    <td className="py-4 px-4 text-gray-600 w-1/5">{request.changeReason || " - "}</td>
+                    <td className="py-4 px-4 text-gray-600 w-1/5">{request.rejectReason || " - "}</td>
+                    <td className="py-4 px-4 text-center text-gray-600 w-1/6">{request.status}</td>
+                    <td className="py-4 px-4 text-center w-1/6">
+                      <div className="flex justify-center gap-2">
                         <button
-                          onClick={() => handleReject(request.bank, request.type)}
-                          className="px-3 py-1.5 rounded-md text-sm font-medium border  border-gray-300 text-gray-600 hover:bg-gray-50 transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <X size={14} /> 취소
-                        </button>
-
-                        <button
-                          onClick={() => handleConfirm(request.bank, request.type)}
+                          onClick={() =>
+                            handleConfirm(request)
+                          }
                           className="px-3 py-1.5 rounded-md text-sm font-medium border border-pink-500 bg-pink-500 text-white hover:bg-pink-600 transition-all flex items-center gap-1.5 cursor-pointer"
                         >
                           <Check size={14} /> 상세 확인
@@ -133,56 +120,20 @@ export default function BankTokenRequests() {
               </tbody>
             </table>
           </div>
-
-          {/* 페이지네이션 */}
-          <div className="flex flex-col items-center mt-6 gap-4">
-            <nav className="flex items-center justify-center gap-1">
-              <button className="w-9 h-9 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 transition-colors">
-                <ChevronLeft size={18} />
-              </button>
-
-              <button className="w-9 h-9 flex items-center justify-center rounded-md bg-pink-500 text-white font-medium">
-                1
-              </button>
-
-              <button className="w-9 h-9 flex items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 transition-colors">
-                <ChevronRight size={18} />
-              </button>
-            </nav>
-          </div>
         </div>
       </div>
 
-      {/* 반려 사유 모달 */}
-      <RejectionReasonModal
-        isOpen={isRejectionModalOpen}
-        onClose={() => setIsRejectionModalOpen(false)}
-        onConfirm={handleConfirmReject}
-        targetName={selectedBank}
-      />
-
-      {/* 요청 상세 모달 */}
       <TokenRequestModal
         isOpen={isDetailsModalOpen || isAddTokenModalOpen}
         onClose={() => {
-          if (isDetailsModalOpen) setIsDetailsModalOpen(false);
-          if (isAddTokenModalOpen) setIsAddTokenModalOpen(false);
+          setIsDetailsModalOpen(false);
+          setIsAddTokenModalOpen(false);
         }}
         onSubmit={handleApproveRequest}
-        requestType={isAddTokenModalOpen ? "new" : selectedRequestType}
-        portfolioDetails={
-          isAddTokenModalOpen
-            ? []
-            : tokenRequests.find((request) => request.bankName === selectedBank)
-              ?.portfolioDetails || []
-        }
-        totalSupplyAmount={
-          isAddTokenModalOpen
-            ? 0
-            : tokenRequests.find((request) => request.bankName === selectedBank)
-              ?.totalSupplyAmount || 0
-        }
+        requestData={!isAddTokenModalOpen ? selectedRequest : undefined}
+        totalSupplyAmount={selectedTotalSupplyAmount}
+        isAddMode={isAddTokenModalOpen}
       />
     </div>
-  )
+  );
 }
