@@ -2,8 +2,8 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import { Sidebar } from "@/components/common/Sidebar";
-import UpbitWebSocket from "@/api/UpbitWebSocket";
+
+import { Sidebar } from '@/components/common/sidebar';
 
 export default function ClientLayout({
   children,

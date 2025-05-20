@@ -11,8 +11,15 @@ import AccountRegistrationModal from "./ManageModal";
 
 // 계좌 정보 타입 정의
 interface AccountBalance {
-  fiat: string;
+  krw: string;
   crypto: string;
+}
+
+interface TickerData {
+  type: string;
+  code: string;
+  trade_price: number;
+  change: string;
 }
 
 interface AccountInfo {
@@ -29,23 +36,19 @@ interface AccountInfoProps {
   title?: string;
   backPath?: string;
   accounts?: AccountInfo[];
-  onModify?: (accountId: string, coinName: string) => void;
+  tickerData?: Record<string, TickerData>;
 }
 
 export default function AccountInfoComponent({
   title = "계좌 정보",
   backPath = "/dashboard/account",
   accounts = [],
+  tickerData = {},
 }: AccountInfoProps) {
-  // const [coinPrices, setCoinPrices] = useState<Record<string, any>>({}); // 시세 데이터를 저장
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountInfo | null>(null)
-  const [prices, setPrices] = useState<{ [key: string]: number }>({
-    "KRW-SOL": 0,
-    "KRW-XRP": 0,
-    "KRW-USDT": 0,
-});
 
+  console.log("부모에서 받은 tickerData:", tickerData);
   const [modalData, setModalData] = useState<{
     bankName: string;
     addressResponse: {
@@ -56,18 +59,6 @@ export default function AccountInfoComponent({
     };
   } | null>(null);
 
-    // 시세 데이터를 가져오는 함수
-    useEffect(() => {
-      // const loadCoinPrices = async () => {
-      //   try {
-      //     const prices = await fetchCoinPrices();
-      //     setPrices(prices);
-      //   } catch (error) {
-      //     console.error("시세 데이터를 가져오는 데 실패했습니다:", error);
-      //   }
-      // };
-  
-    }, []);
 
   // 상태 변환 함수
   const getStatusLabel = (status: string): string => {
@@ -83,16 +74,17 @@ export default function AccountInfoComponent({
     }
   };
 
-  const calculateFiatValue = (cryptoAmount: string, market: string): string => {
-    const currentPrice = prices[market]; // `prices`는 `fetchCoinPrices`에서 가져온 시세 데이터
-    console.log("cryptoAmount:", cryptoAmount); // 전달된 코인 잔액
-    console.log("market:", market);             // 전달된 코인 마켓
-    console.log("currentPrice:", currentPrice); // 해당 마켓의 현재 시세 데이터
-  
-    if (!currentPrice) return "시세 없음"; // 시세 데이터가 없을 경우 처리
-    const fiatValue = parseFloat(cryptoAmount) * currentPrice; // 원화 계산
-    console.log("fiatValue:", fiatValue);       // 계산된 원화 값
-    return `${fiatValue.toLocaleString()} 원`; // 원화로 변환
+  const calculateFiatValue = (coinAmount: string, symbol: string): string => {
+    const marketCode = `KRW-${symbol}`;
+    const ticker = tickerData[marketCode];
+    if (!ticker || !ticker.trade_price) return "시세 불러오기 실패";
+
+    const parsedAmount = parseFloat(coinAmount);
+
+    if (isNaN(parsedAmount)) return "잔액 오류";
+
+    const totalKRW = parsedAmount * ticker.trade_price;
+    return `${Math.floor(totalKRW).toLocaleString()} 원`;
   };
 
 
@@ -134,7 +126,7 @@ export default function AccountInfoComponent({
           {/* 헤더 */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+              <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
             </div>
           </div>
 
@@ -162,7 +154,9 @@ export default function AccountInfoComponent({
                     </td>
                     <td className="py-4 px-4 text-gray-800">{account.tagAccount || "-"}</td>
                     <td className="py-4 px-4">
-                    <div>{calculateFiatValue(account.balance.fiat, account.coinCurrency)}</div>
+                      <div className="text-red-600 font-bold">
+                        {calculateFiatValue(account.balance.crypto, account.coinCurrency)}
+                      </div>
                       <div className="text-sm text-gray-500">{account.balance.crypto}</div>
                     </td>
                     <td className="py-4 px-4 text-gray-800">{getStatusLabel(account.status)}</td>
