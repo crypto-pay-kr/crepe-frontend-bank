@@ -3,7 +3,7 @@
 
 import { usePathname } from 'next/navigation';
 import { useBankContext } from "@/context/BankContext";
-import { Sidebar } from '@/components/common/sidebar';
+import { Sidebar } from '@/components/common/Sidebar';
 
 export default function ClientLayout({
   children,
