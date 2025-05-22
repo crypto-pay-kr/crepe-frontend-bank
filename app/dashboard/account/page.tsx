@@ -66,7 +66,7 @@ export default function BankAccountPage() {
   return (
     <div className="flex-1 p-8 overflow-auto bg-gray-50">
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <SubHeader bankName={bankName} onAddAccount={handleAddAccount} />
+        <SubHeader  onAdd={handleAddAccount} />
         <AccountInfoComponent
           title="계좌 정보"
           backPath="/dashboard/account"

@@ -113,10 +113,6 @@ export default function Step1({
             occupations: formData.eligibilityOccupations,
             incomeLevels: formData.eligibilityIncomeLevels,
         };
-
-        console.log("Parsed joinConditions:", parsedJoin);
-
-
     return (
         <div className="p-6">
             <h2 className="text-xl font-bold text-gray-700 mb-6 text-center">

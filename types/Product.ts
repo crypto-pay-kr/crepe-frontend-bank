@@ -31,14 +31,16 @@ export interface FormDataType {
     maxMonthlyPayment: string;
     period: string;
     tags: string[];
-    additionalInterestRates: InterestRateCategory[];
+    additionalInterestRates: InterestRateCategory[];  // 우대금리 목록
     maxParticipants: string;
     startDate: string;
     endDate: string;
     eligibilityAgeGroups: string[];
     eligibilityOccupations: string[];
     eligibilityIncomeLevels: string[];
-    joinConditions: string;
+    joinConditions: string; 
+    imageUrl: string;
+    guideFileUrl: string;
 }
 
 /**

@@ -3,11 +3,10 @@ import { ArrowLeft, PlusCircle } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 interface SubHeaderProps {
-  bankName: string;
   onAdd: () => void; // 추가 버튼 클릭 시 호출할 함수
 }
 
-const SubHeader: React.FC<SubHeaderProps> = ({ bankName, onAdd }) => {
+const SubHeader: React.FC<SubHeaderProps> = ({ onAdd }) => {
   const pathname = usePathname();
   const isTokenManagement = pathname === "/token";
   const isProductManagement = pathname === "/products";
@@ -19,7 +18,6 @@ const SubHeader: React.FC<SubHeaderProps> = ({ bankName, onAdd }) => {
           <button className="rounded-full hover:bg-gray-100 transition-colors duration-200">
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
-          <h1 className="text-xl font-semibold text-gray-800">{bankName}</h1>
           <div className="flex text-sm text-gray-500 font-medium">
             <span className="hover:text-gray-700 cursor-pointer transition-colors duration-200">은행</span>
             <span className="mx-2 text-gray-400">/</span>

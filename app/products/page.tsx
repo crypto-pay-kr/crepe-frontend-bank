@@ -1,7 +1,9 @@
-"use client"
+"use client";
+
+
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useRouter} from "next/navigation"
 import {
   Search, ChevronLeft, ChevronRight, Filter, Ban, FileText, Eye, PlusCircle, ArrowLeft
 } from "lucide-react"
@@ -13,11 +15,6 @@ import { mapProductTypeToFrontend } from "@/types/Product"
 
 export default function BankProductManagement() {
   const router = useRouter();
-  const params = useParams();
-  const searchParams = useSearchParams();
-
-  const bankId = params.id;
-  const bankName = searchParams.get('name') || "은행";
 
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
@@ -58,15 +55,6 @@ export default function BankProductManagement() {
     setSelectedProduct(null);
   }
 
-  const handleViewProductDetails = (productId: number) => {
-    const product = bankProducts.find((p) => p.id === productId);
-    if (product) {
-      router.push(
-        `/products/add?data=${encodeURIComponent(JSON.stringify(product))}`
-      );
-    }
-  };
-
   const handleViewProductGuide = (productId: number) => {
     const product = bankProducts.find((p) => p.id === productId);
     if (product) {
@@ -75,18 +63,20 @@ export default function BankProductManagement() {
     }
   }
 
-  const handleGoBack = () => {
-    router.push(`/bank/management/${bankId}?name=${encodeURIComponent(bankName)}`);
-  }
-
   const handleAddProduct = () => {
     router.push("/products/add");
+  };
+
+
+  // 수정 모드로 이동
+  const handleEditProduct = (productId: number) => {
+    router.push(`/products/add?productId=${productId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
-        <SubHeader bankName={bankName} onAdd={handleAddProduct} />
+        <SubHeader onAdd={handleAddProduct} />
 
         {/* 검색 및 필터 */}
         <div className="p-6 bg-white">
@@ -179,7 +169,7 @@ export default function BankProductManagement() {
                     </td>
                     <td className="py-3 px-1">
                       <button
-                        onClick={() => handleViewProductDetails(product.id)}
+                        onClick={() =>  handleEditProduct(product.id)}
                         className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
                       >
                         <Eye className="w-3 h-3 mr-1" />
