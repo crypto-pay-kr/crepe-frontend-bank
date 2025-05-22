@@ -47,7 +47,7 @@ export default function BankTokenRequests() {
   return (
     <div className="flex-1 h-screen p-8 overflow-auto bg-gray-50">
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <SubHeader bankName="" onAddAccount={handleAddToken} />
+        <SubHeader bankName="" onAdd={handleAddToken} />
         {/* 헤더 섹션 */}
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center justify-between">
@@ -131,7 +131,6 @@ export default function BankTokenRequests() {
         }}
         onSubmit={handleApproveRequest}
         requestData={!isAddTokenModalOpen ? selectedRequest : undefined}
-        totalSupplyAmount={selectedTotalSupplyAmount}
         isAddMode={isAddTokenModalOpen}
       />
     </div>
