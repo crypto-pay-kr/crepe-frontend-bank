@@ -72,6 +72,7 @@ function LoginPage() {
             
             // 실제 백엔드 API 호출 - 환경 변수로 API URL 사용
             const response = await axios.get<CaptchaResponse>(`${API_BASE_URL}/captcha`);
+            console.log("[CAPTCHA]API_BASE_URL:" + API_BASE_URL);
             
             setCaptchaKey(response.data.captchaKey);
             setCaptchaImageUrl(response.data.captchaImageUrl);
