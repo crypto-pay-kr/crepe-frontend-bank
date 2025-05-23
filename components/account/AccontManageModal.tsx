@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { X, ChevronDown } from "lucide-react"
 import { changeBankAccount, registerBankAccount } from "@/api/bankAccountApi"
 
@@ -24,7 +24,7 @@ interface AccountRegistrationModalProps {
     };
 }
 
-export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, initialData}: AccountRegistrationModalProps) {
+export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, initialData }: AccountRegistrationModalProps) {
     const [depositorName, setDepositorName] = useState(initialData?.bankName || "");
     const [currency, setCurrency] = useState(initialData?.addressResponse.currency || "XRP");
     const [address, setAddress] = useState(initialData?.addressResponse.address || "");
@@ -34,6 +34,8 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
 
     if (!isOpen) return null
 
+    // 모든 계좌에서 address는 필수이므로 빈 문자열이면 등록 버튼 비활성화
+    const isAddressEmpty = address.trim() === ""
 
     const handleSubmit = async () => {
         try {
@@ -47,22 +49,21 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
             };
 
             if (initialData) {
-                // 수정 요청
-                console.log("수정 요청 데이터:", { depositorName, currency, address, tag })
+                console.log("수정 요청 데이터:", data)
                 await changeBankAccount(depositorName, currency, address, tag) // 수정 API 호출
-                alert("계좌 수정 성공")
             } else {
-                // 등록 요청
-                console.log("등록 요청 데이터:", { depositorName, currency, address, tag })
+                console.log("등록 요청 데이터:", data)
                 await registerBankAccount(depositorName, currency, address, tag) // 등록 API 호출
-                alert("계좌 등록 성공")
             }
 
-            // 성공 시 부모 컴포넌트에 데이터 전달
             onSubmit(data);
+            onClose();
 
-            // 모달 닫기
-            onClose()
+            // 폼 데이터 초기화
+            setDepositorName("");
+            setCurrency("XRP");
+            setAddress("");
+            setTag("");
         } catch (error: any) {
             console.error("요청 실패:", error.message)
             alert(`요청 실패: ${error.message}`)
@@ -71,16 +72,15 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
         }
     }
 
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
             <div className="w-full max-w-lg bg-white shadow-lg rounded-lg overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 bg-black">
-                    <h2 className="text-xl font-medium text-pink-500">
+                <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-pink-500 to-rose-400">
+                    <h2 className="text-xl font-medium text-white">
                         {initialData ? "계좌 수정" : "계좌 등록"}
                     </h2>
-                    <button onClick={onClose} className="text-pink-500 hover:text-pink-400">
+                    <button onClick={onClose} className="text-white hover:text-pink-100 transition-colors">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -95,7 +95,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                             value={depositorName}
                             onChange={(e) => setDepositorName(e.target.value)}
                             placeholder="행명 입력"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-700"
                         />
                     </div>
 
@@ -104,7 +104,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                         <label className="block text-lg text-gray-700 font-medium">네트워크</label>
                         <div className="relative">
                             <div
-                                className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-md cursor-pointer"
+                                className="flex items-center justify-between w-full px-4 py-3 border border-gray-300 rounded-md cursor-pointer focus:ring-2 focus:ring-pink-500"
                                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             >
                                 <div className="flex items-center justify-between w-full">
@@ -115,7 +115,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                             {isDropdownOpen && (
                                 <div className="absolute top-full left-0 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10">
                                     <div
-                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-center"
+                                        className="px-4 py-2 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 cursor-pointer text-gray-700 text-center"
                                         onClick={() => {
                                             setCurrency("XRP")
                                             setIsDropdownOpen(false)
@@ -124,7 +124,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                                         XRP
                                     </div>
                                     <div
-                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-center"
+                                        className="px-4 py-2 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 cursor-pointer text-gray-700 text-center"
                                         onClick={() => {
                                             setCurrency("USDT")
                                             setIsDropdownOpen(false)
@@ -133,7 +133,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                                         USDT
                                     </div>
                                     <div
-                                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 text-center"
+                                        className="px-4 py-2 hover:bg-gradient-to-r hover:from-pink-50 hover:to-rose-50 cursor-pointer text-gray-700 text-center"
                                         onClick={() => {
                                             setCurrency("SOL")
                                             setIsDropdownOpen(false)
@@ -154,7 +154,8 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                             value={address}
                             onChange={(e) => setAddress(e.target.value)}
                             placeholder="계좌 주소를 입력하세요"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-700"
+                            required
                         />
                     </div>
 
@@ -165,8 +166,11 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                             type="text"
                             value={tag}
                             onChange={(e) => setTag(e.target.value)}
-                            placeholder="Tag를 입력하세요 (선택 사항)"
-                            className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                            placeholder="Tag를 입력하세요 (XRP 전용)"
+                            disabled={currency !== "XRP"}
+                            className={`w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-700 ${
+                                currency !== "XRP" ? "bg-gray-200 cursor-not-allowed" : "bg-white"
+                            }`}
                         />
                     </div>
                 </div>
@@ -175,15 +179,16 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
                 <div className="flex justify-center gap-4 p-6">
                     <button
                         onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className={`px-6 py-3 bg-blue-900 text-white font-medium rounded-md hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
+                        disabled={isSubmitting || isAddressEmpty}
+                        className={`px-6 py-3 bg-gradient-to-r bg-pink-500 text-white font-medium rounded-md shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-pink-500 active:scale-95 ${
+                            isSubmitting || isAddressEmpty ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                     >
                         {isSubmitting ? "처리 중..." : initialData ? "수정" : "등록"}
                     </button>
                     <button
                         onClick={onClose}
-                        className="px-6 py-3 bg-white text-gray-800 font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        className="px-6 py-3 bg-white text-gray-800 font-medium border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
                     >
                         닫기
                     </button>

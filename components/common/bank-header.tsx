@@ -2,10 +2,9 @@ import React from "react";
 
 interface BankHeaderProps {
   bankName: string;
-  onDelete: () => void; // 삭제 버튼 클릭 시 호출할 함수
 }
 
-const BankHeader: React.FC<BankHeaderProps> = ({ bankName, onDelete }) => {
+const BankHeader: React.FC<BankHeaderProps> = ({ bankName}) => {
   return (
     <div className="p-4 bg-white shadow-sm mb-4">
       <div className="flex items-center justify-between">
@@ -28,12 +27,6 @@ const BankHeader: React.FC<BankHeaderProps> = ({ bankName, onDelete }) => {
           </button>
           <h1 className="text-lg font-medium text-gray-700">{bankName}</h1>
         </div>
-        <button
-          onClick={onDelete}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
-        >
-          은행 삭제
-        </button>
       </div>
     </div>
   );

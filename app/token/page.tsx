@@ -4,6 +4,9 @@ import { Search, ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { getTokenHistory } from "@/api/tokenApi";
 import TokenRequestModal from "@/components/bank/TokenRequestModal";
 import SubHeader from "@/components/common/SubHeader";
+import { mapTokenRequestStatus } from "@/types/Token";
+
+
 
 export default function BankTokenRequests() {
   const [tokenRequests, setTokenRequests] = useState<any[]>([]);
@@ -13,6 +16,7 @@ export default function BankTokenRequests() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [selectedPortfolioDetails, setSelectedPortfolioDetails] = useState<any[]>([]);
   const [selectedTotalSupplyAmount, setSelectedTotalSupplyAmount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     getTokenHistory(0, 10)
@@ -54,9 +58,7 @@ export default function BankTokenRequests() {
         <SubHeader onAdd={handleAddToken} />
         {/* 헤더 섹션 */}
         <div className="p-6 border-b border-gray-100">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-gray-800">은행 토큰 요청 수락</h1>
-          </div>
+
         </div>
 
         {/* 검색 및 필터 */}
@@ -89,41 +91,77 @@ export default function BankTokenRequests() {
                 </tr>
               </thead>
               <tbody>
-                {tokenRequests.map((request, index) => (
-                  <tr key={request.tokenHistoryId || index} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="py-4 px-4 text-gray-600 w-1/6">{request.requestType}</td>
-                    <td className="py-4 px-4 text-gray-800 w-1/4">
-                      {`${request.tokenName} (${request.currency})`}
-                    </td>
-                    <td className="py-4 px-4 text-gray-600 w-1/5">
-                      {new Date(request.createdAt).toLocaleString("ko-KR", {
-                        year: "numeric",
-                        month: "2-digit",
-                        day: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                    <td className="py-4 px-4 text-gray-600 w-1/5">{request.changeReason || " - "}</td>
-                    <td className="py-4 px-4 text-gray-600 w-1/5">{request.rejectReason || " - "}</td>
-                    <td className="py-4 px-4 text-center text-gray-600 w-1/6">{request.status}</td>
-                    <td className="py-4 px-4 text-center w-1/6">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() =>
-                            handleConfirm(request)
-                          }
-                          className="px-3 py-1.5 rounded-md text-sm font-medium border border-pink-500 bg-pink-500 text-white hover:bg-pink-600 transition-all flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Check size={14} /> 상세 확인
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {tokenRequests.map((request, index) => {
+                  const statusInfo = mapTokenRequestStatus(request.status);
+                  return (
+                    <tr key={request.tokenHistoryId || index} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="py-4 px-4 text-gray-600 w-1/6">{request.requestType}</td>
+                      <td className="py-4 px-4 text-gray-800 w-1/4">
+                        {`${request.tokenName} (${request.currency})`}
+                      </td>
+                      <td className="py-4 px-4 text-gray-600 w-1/5">
+                        {new Date(request.createdAt).toLocaleString("ko-KR", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </td>
+                      <td className="py-4 px-4 text-gray-600 w-1/5">{request.changeReason || " - "}</td>
+                      <td className="py-4 px-4 text-gray-600 w-1/5">{request.rejectReason || " - "}</td>
+                      <td className="py-4 px-4 text-center w-1/6">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusInfo.bgClass} ${statusInfo.textClass}`}>
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-center w-1/6">
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleConfirm(request)}
+                            className="px-3 py-1.5 rounded-md text-sm font-medium border border-pink-500 bg-pink-500 text-white hover:bg-pink-600 transition-all flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Check size={14} /> 상세 확인
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* 페이지네이션 */}
+        <div className="flex flex-col items-center mt-6 gap-4">
+          <nav className="flex items-center justify-center gap-1">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className={`w-9 h-9 flex items-center justify-center rounded-md ${currentPage === 1 ? "text-gray-300" : "text-gray-400 hover:bg-gray-100"} transition-colors`}
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {[1, 2, 3, 4, 5].map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`w-9 h-9 flex items-center justify-center rounded-md ${currentPage === page ? "bg-pink-500 text-white font-medium" : "text-gray-600 hover:bg-gray-100 transition-colors"}`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage(Math.min(5, currentPage + 1))}
+              disabled={currentPage === 5}
+              className={`w-9 h-9 flex items-center justify-center rounded-md ${currentPage === 5 ? "text-gray-300" : "text-gray-400 hover:bg-gray-100"} transition-colors`}
+            >
+              <ChevronRight size={18} />
+            </button>
+          </nav>
         </div>
       </div>
 

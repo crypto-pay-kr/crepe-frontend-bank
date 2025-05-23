@@ -1,17 +1,21 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-interface LoginRequest {
+export interface BankLoginRequest {
   email: string;
   password: string;
+  captchaKey: string;
+  captchaValue: string;
 }
 
-interface LoginResponse {
+
+export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   role: string;
 }
 
-export async function BankLogin(body: LoginRequest): Promise<LoginResponse> {
+
+export async function BankLogin(body: BankLoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${BASE_URL}/bank/login`, {
     method: "POST",
     headers: {

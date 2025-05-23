@@ -1,20 +1,9 @@
 "use client"
 
+import { TokenChange, TokenValue } from "@/types/Token"
 import { X } from "lucide-react"
 
-interface TokenChange {
-  symbol: string
-  oldValue: string
-  newValue: string
-  status: string
-  statusType: "increase" | "decrease" | "new"
-}
 
-interface TokenValue {
-  value: string
-  change?: string
-  changeType?: "increase" | "decrease"
-}
 
 interface RequestDetailsModalProps {
   isOpen: boolean

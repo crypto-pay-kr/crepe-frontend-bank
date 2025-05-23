@@ -340,13 +340,6 @@ export default function BankDetailPage() {
   }, [bankName]); // bankName이 변경될 때마다 실행
 
 
-  // 은행 삭제 함수 (예시)
-  const handleDeleteBank = () => {
-    alert("은행 삭제 기능 호출됨!");
-    // 실제 삭제 로직 추가 필요
-  };
-
-
 
   if (!bankInfo) {
     return <div>Loading...</div>;
@@ -356,7 +349,7 @@ export default function BankDetailPage() {
     <div className="flex h-screen bg-gray-100">
       {/* Main Content */}
       <div className="flex-1 overflow-auto p-4">
-        <BankHeader bankName={bankInfo.bankName} onDelete={handleDeleteBank} />
+        <BankHeader bankName={bankInfo.bankName}/>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <BankInfoSection

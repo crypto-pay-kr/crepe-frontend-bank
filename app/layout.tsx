@@ -1,4 +1,3 @@
-// app/layout.tsx
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ClientLayout from "./client-layout";
@@ -6,6 +5,8 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { WebSocketProvider } from "@/context/WebSocketContext";
 import { BankProvider } from "@/context/BankContext";
+import AuthGuard from "@/components/AuthGuard";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,9 @@ export default function RootLayout({
         <AuthProvider>
           <WebSocketProvider>
             <BankProvider>
-              <ClientLayout>
-                {children}
-              </ClientLayout>
+              <AuthGuard>
+                <ClientLayout>{children}</ClientLayout>
+              </AuthGuard>
             </BankProvider>
           </WebSocketProvider>
         </AuthProvider>

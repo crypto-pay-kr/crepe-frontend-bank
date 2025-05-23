@@ -181,12 +181,12 @@ export default function TokenRequestModal({
     return (
         <>
             <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-                <div className="bg-white rounded-lg w-full max-w-lg">
-                    <div className="flex justify-between items-center p-4 bg-black">
-                        <h2 className="text-lg font-medium text-[#F47C98]">
+                <div className="bg-white rounded-lg w-full max-w-lg shadow-xl">
+                    <div className="flex justify-between items-center p-4 bg-gradient-to-r from-pink-500 to-rose-400 rounded-t-lg">
+                        <h2 className="text-lg font-medium text-white">
                             {isAddMode ? "토큰 추가" : "토큰 상세 확인"}
                         </h2>
-                        <button onClick={onClose} className="text-[#F47C98]">
+                        <button onClick={onClose} className="text-white hover:text-pink-100 transition-colors">
                             <X size={24} />
                         </button>
                     </div>
@@ -199,7 +199,7 @@ export default function TokenRequestModal({
                                 name="tokenName"
                                 value={formData.tokenName}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                                 readOnly={isReadOnlyMode}
                             />
                         </div>
@@ -210,7 +210,7 @@ export default function TokenRequestModal({
                                 name="currency"
                                 value={formData.currency}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                                 readOnly={isReadOnlyMode}
                             />
                         </div>
@@ -225,7 +225,7 @@ export default function TokenRequestModal({
                                     onChange={(e) =>
                                         setFormData((prev) => ({ ...prev, changeReason: e.target.value }))
                                     }
-                                    className="w-full border rounded-md p-3 text-gray-500"
+                                    className="w-full border border-gray-300 rounded-md p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                                 />
                             </div>
                         )}
@@ -235,28 +235,28 @@ export default function TokenRequestModal({
                                 {formData.portfolio.map((item: PortfolioItem, index: number) => (
                                     <div
                                         key={index}
-                                        className="border border-gray-300 rounded-md p-3 flex items-center justify-between"
+                                        className="border border-pink-200 bg-gradient-to-r from-pink-50/50 to-rose-50/50 rounded-md p-3 flex items-center justify-between"
                                     >
                                         <div className="flex items-center">
-                                            <span className="w-16 text-gray-500">{item.currency}</span>
+                                            <span className="w-16 text-gray-700 font-medium">{item.currency}</span>
                                             {/* currentAmount(읽기 전용) */}
                                             {item.currentAmount !== undefined && (
-                                                <span className="mx-2 text-gray-500">
+                                                <span className="mx-2 text-gray-700">
                                                     {item.currentAmount}
                                                 </span>
                                             )}
-                                            <span className="mx-2 text-gray-500">→</span>
+                                            <span className="mx-2 text-pink-500 font-bold">→</span>
                                             {/* newAmount 입력 가능 */}
                                             <input
                                                 type="text"
-                                                className="border border-gray-300 rounded-md p-1 w-20 text-gray-500"
+                                                className="border border-pink-200 rounded-md p-1 w-20 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
                                                 value={item.newAmount ?? item.amount ?? ""}
                                                 onChange={(e) => handleNewAmountChange(index, e.target.value)}
                                             />
                                         </div>
                                         <button
                                             onClick={() => handleRemoveCurrency(index)}
-                                            className="text-gray-500 hover:text-red-500"
+                                            className="text-gray-500 hover:text-red-500 transition-colors"
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -264,13 +264,13 @@ export default function TokenRequestModal({
                                 ))}
                             </div>
                             {showTokenInput ? (
-                                <div className="border border-gray-300 rounded-md p-3 mt-4">
+                                <div className="border border-pink-200 bg-gradient-to-r from-pink-50/30 to-rose-50/30 rounded-md p-3 mt-4">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="relative flex-1">
                                             <select
                                                 value={selectedToken}
                                                 onChange={(e) => setSelectedToken(e.target.value)}
-                                                className="w-full appearance-none border border-gray-300 rounded-md p-2 pr-8 text-gray-500"
+                                                className="w-full appearance-none border border-pink-200 rounded-md p-2 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
                                             >
                                                 <option value="">토큰 선택</option>
                                                 <option value="XRP">XRP</option>
@@ -278,7 +278,7 @@ export default function TokenRequestModal({
                                                 <option value="USDT">USDT</option>
                                             </select>
                                             <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                                                <ChevronDown size={16} />
+                                                <ChevronDown size={16} className="text-pink-500" />
                                             </div>
                                         </div>
                                         <input
@@ -286,19 +286,19 @@ export default function TokenRequestModal({
                                             value={tokenAmount}
                                             onChange={(e) => setTokenAmount(e.target.value)}
                                             placeholder="수량"
-                                            className="flex-1 border border-gray-300 rounded-md p-2 text-gray-500"
+                                            className="flex-1 border border-pink-200 rounded-md p-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
                                         />
                                     </div>
                                     <div className="flex justify-end gap-2">
                                         <button
                                             onClick={() => setShowTokenInput(false)}
-                                            className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-500"
+                                            className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                         >
                                             취소
                                         </button>
                                         <button
                                             onClick={handleAddTokenToPortfolio}
-                                            className="px-3 py-1 bg-blue-900 text-white rounded-md text-sm text-gray-500"
+                                            className="px-3 py-1 bg-gradient-to-r from-pink-500 to-rose-400 text-white rounded-md text-sm shadow-sm hover:shadow-md transition-all active:scale-95"
                                         >
                                             추가
                                         </button>
@@ -307,20 +307,20 @@ export default function TokenRequestModal({
                             ) : (
                                 <button
                                     onClick={() => setShowTokenInput(true)}
-                                    className="w-full border border-gray-300 rounded-md p-3 flex items-center justify-center text-gray-500"
+                                    className="w-full border border-pink-200 bg-gradient-to-r from-pink-50/30 to-rose-50/30 rounded-md p-3 flex items-center justify-center text-pink-500 hover:from-pink-50 hover:to-rose-50 transition-all"
                                 >
                                     <Plus size={18} />
                                 </button>
                             )}
                         </div>
-                        <div className="mb-4 p-4 bg-gray-100 rounded h-40 overflow-y-auto">
+                        <div className="mb-4 p-4 bg-gradient-to-r from-pink-50/30 to-rose-50/30 border border-pink-100 rounded h-40 overflow-y-auto">
                             <h3 className="font-bold mb-2 text-gray-700">실시간 시세 데이터</h3>
                             {Object.entries(tickerData).map(([code, data]) => (
-                                <div key={code} className="mb-2 text-black">
-                                    <span className="font-medium text-black">{code}:</span>{" "}
+                                <div key={code} className="mb-2 text-gray-700">
+                                    <span className="font-medium text-gray-800">{code}:</span>{" "}
                                     {data.trade_price.toLocaleString()} KRW
                                     <span
-                                        className={`ml-2 ${data.change === "RISE"
+                                        className={`ml-2 font-medium ${data.change === "RISE"
                                             ? "text-red-500"
                                             : data.change === "FALL"
                                                 ? "text-blue-500"
@@ -340,20 +340,20 @@ export default function TokenRequestModal({
                                 name="totalValue"
                                 value={Number(formData.totalValue).toLocaleString()}
                                 onChange={handleChange}
-                                className="w-full border border-gray-300 rounded-md p-3 text-gray-500"
+                                className="w-full border border-gray-300 rounded-md p-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                                 placeholder="토큰 가치"
                             />
                         </div>
                         <div className="flex gap-3">
                             <button
                                 onClick={handleSubmit}
-                                className="px-6 py-3 bg-blue-900 text-white rounded-md font-medium flex-1 text-gray-500"
+                                className="px-6 py-3 bg-gradient-to-r bg-pink-500 text-white rounded-md font-medium flex-1 shadow-md hover:shadow-lg transition-all active:scale-95"
                             >
                                 {isAddMode ? "요청 추가" : "요청 승인"}
                             </button>
                             <button
                                 onClick={onClose}
-                                className="px-6 py-3 border border-gray-300 rounded-md font-medium flex-1 text-gray-500"
+                                className="px-6 py-3 border border-gray-300 rounded-md font-medium flex-1 text-gray-700 hover:bg-gray-50 transition-colors"
                             >
                                 닫기
                             </button>

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 import { getAccountByCurrency } from "@/api/bankAccountApi";
 import { useState, useEffect } from "react"
-import AccountRegistrationModal from "./ManageModal";
+import AccountRegistrationModal from "./AccontManageModal";
 import { TickerData } from "@/types/Coin";
 import { AccountInfo } from "@/types/Account";
 

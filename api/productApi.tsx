@@ -85,3 +85,21 @@ export async function getProductById(id: number): Promise<FormData> {
     }
     return response.json();
 }
+
+export async function getSuspendedProducts() {
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+        throw new Error("Access token is missing");
+    }
+    const response = await fetch(`${BASE_URL}/bank/products/suspended`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
+    });
+    if (!response.ok) {
+        throw new Error("판매중지 상품 조회에 실패했습니다.");
+    }
+    return response.json();
+}
