@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export async function getTokenHistory(page = 0, size = 10) {
 
@@ -8,7 +8,7 @@ export async function getTokenHistory(page = 0, size = 10) {
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank/token/history?page=${page}&size=${size}`, {
+  const response = await fetch(`${API_BASE_URL}/bank/token/history?page=${page}&size=${size}`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -34,7 +34,7 @@ export async function createBankToken(requestData: {
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank/token/create`, {
+  const response = await fetch(`${API_BASE_URL}/bank/token/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export async function recreateBankToken(requestData: {
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank/token/recreate`, {
+  const response = await fetch(`${API_BASE_URL}/bank/token/recreate`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

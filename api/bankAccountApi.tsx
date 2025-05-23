@@ -1,6 +1,6 @@
 import { getAccessToken } from "@/context/AuthContext";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 
 export async function fetchBankAccounts() {
@@ -9,7 +9,7 @@ export async function fetchBankAccounts() {
   if (!accessToken) {
     throw new Error("Access token is missing");
   }
-  const response = await fetch(`${BASE_URL}/bank/account/all`, {
+  const response = await fetch(`${API_BASE_URL}/bank/account/all`, {
     headers: {
       Authorization: `Bearer ${accessToken}`
     }
@@ -26,7 +26,7 @@ export async function registerBankAccount(bankName: string, currency: string, ad
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank/register/account`, {
+  const response = await fetch(`${API_BASE_URL}/bank/register/account`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -62,7 +62,7 @@ export async function getAccountByCurrency(currency: string): Promise<{
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank/account?currency=${currency}`, {
+  const response = await fetch(`${API_BASE_URL}/bank/account?currency=${currency}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -88,7 +88,7 @@ export async function changeBankAccount(
     throw new Error("Access token is missing")
   }
 
-  const response = await fetch(`${BASE_URL}/bank/change/account`, {
+  const response = await fetch(`${API_BASE_URL}/bank/change/account`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",

@@ -1,6 +1,6 @@
 import { getAccessToken } from "@/context/AuthContext";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 
 export async function fetchBankInfoDetail() {
@@ -10,7 +10,7 @@ export async function fetchBankInfoDetail() {
     throw new Error("Access token is missing");
   }
 
-  const response = await fetch(`${BASE_URL}/bank`, {
+  const response = await fetch(`${API_BASE_URL}/bank`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -29,7 +29,7 @@ export async function changeBankPhone(phoneNumber: string) {
   }
 
 
-  const response = await fetch(`${BASE_URL}/bank/change/phone`, {
+  const response = await fetch(`${API_BASE_URL}/bank/change/phone`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export async function changeBankCI(ciImage: File) {
   const formData = new FormData();
   formData.append("ciImage", ciImage);
 
-  const response = await fetch(`${BASE_URL}/bank/change/ci`, {
+  const response = await fetch(`${API_BASE_URL}/bank/change/ci`, {
     method: "PATCH",
     headers: {
       Authorization: `Bearer ${accessToken}`,

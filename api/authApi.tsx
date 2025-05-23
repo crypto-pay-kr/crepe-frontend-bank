@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export interface BankLoginRequest {
   email: string;
@@ -16,7 +16,7 @@ export interface LoginResponse {
 
 
 export async function BankLogin(body: BankLoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${BASE_URL}/bank/login`, {
+  const response = await fetch(`${API_BASE_URL}/bank/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

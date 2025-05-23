@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 import { RegisterProductRequest } from "@/types/Product";
 
 
@@ -24,7 +24,7 @@ export async function registerProduct(
             throw new Error("Access token is missing");
         }
 
-        const response = await fetch(`${BASE_URL}/bank/register/product`, {
+        const response = await fetch(`${API_BASE_URL}/bank/register/product`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -54,7 +54,7 @@ export async function getProducts() {
     if (!accessToken) {
         throw new Error("Access token is missing");
     }
-    const response = await fetch(`${BASE_URL}/bank/products`, {
+    const response = await fetch(`${API_BASE_URL}/bank/products`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -73,7 +73,7 @@ export async function getProductById(id: number): Promise<FormData> {
         throw new Error("Access token is missing");
     }
 
-    const response = await fetch(`${BASE_URL}/bank/product/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/bank/product/${id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -91,7 +91,7 @@ export async function getSuspendedProducts() {
     if (!accessToken) {
         throw new Error("Access token is missing");
     }
-    const response = await fetch(`${BASE_URL}/bank/products/suspended`, {
+    const response = await fetch(`${API_BASE_URL}/bank/products/suspended`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
