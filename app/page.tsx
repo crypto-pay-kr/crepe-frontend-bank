@@ -3,7 +3,6 @@ import { ArrowRight, Shield, Zap, BarChart3, CreditCard } from "lucide-react"
 import { redirect } from 'next/navigation';
 
 export default function WelcomePage() {
-  redirect('/dashboard')
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* 헤더 */}
