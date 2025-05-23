@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
 import { RegisterProductRequest } from "@/types/Product";
 
 

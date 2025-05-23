@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL+"/api";
 
 export async function getTokenHistory(page = 0, size = 10) {
 
