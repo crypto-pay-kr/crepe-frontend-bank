@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { ArrowRight, Shield, Zap, BarChart3, CreditCard } from "lucide-react"
+import { redirect } from 'next/navigation';
 
 export default function WelcomePage() {
+  redirect('/dashboard')
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* 헤더 */}
@@ -24,7 +26,7 @@ export default function WelcomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/register"
+              href="/login"
               className="px-8 py-3 bg-[#F47C98] text-white rounded-full font-medium hover:bg-[#E06A88] transition-colors flex items-center justify-center gap-2"
             >
               시작하기

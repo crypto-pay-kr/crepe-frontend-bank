@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter} from "next/navigation"
+import { useRouter } from "next/navigation"
 import {
   Search, ChevronLeft, ChevronRight, Filter, Ban, FileText, Eye, PlusCircle, ArrowLeft
 } from "lucide-react"
@@ -12,6 +12,7 @@ import SubHeader from "@/components/common/SubHeader"
 import ProductGuideModal from "@/components/product/ProductGuideModal"
 import { getProducts } from "@/api/productApi"
 import { mapProductTypeToFrontend } from "@/types/Product"
+import { mapBankProductStatus, BankProductStatus } from "@/types/Product";
 
 export default function BankProductManagement() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function BankProductManagement() {
   const [searchTerm, setSearchTerm] = useState("")
   const [confirmModalOpen, setConfirmModalOpen] = useState(false)
   const [productGuideModalOpen, setProductGuideModalOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<{ id: number; productName: string } | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<{ id: number; productName: string, guideFileUrl?: string } | null>(null)
   const [bankProducts, setBankProducts] = useState<any[]>([])
 
   useEffect(() => {
@@ -55,14 +56,19 @@ export default function BankProductManagement() {
     setSelectedProduct(null);
   }
 
+  // BankProductManagement 페이지 (app/products/page.tsx)
   const handleViewProductGuide = (productId: number) => {
     const product = bankProducts.find((p) => p.id === productId);
     if (product) {
-      setSelectedProduct({ id: product.id, productName: product.productName });
+      console.log("=== Selected guideFileUrl ===", product.guideFileUrl);
+      setSelectedProduct({
+        id: product.id,
+        productName: product.productName,
+        guideFileUrl: product.guideFileUrl, // guideFileUrl 추가
+      });
       setProductGuideModalOpen(true);
     }
-  }
-
+  };
   const handleAddProduct = () => {
     router.push("/products/add");
   };
@@ -74,9 +80,12 @@ export default function BankProductManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
+    <div className="flex-1 h-screen p-8 overflow-auto bg-gray-50">
+      <div className="bg-white rounded-lg shadow-sm p-6">
         <SubHeader onAdd={handleAddProduct} />
+        <div className="p-6 border-b border-gray-100">
+
+</div>
 
         {/* 검색 및 필터 */}
         <div className="p-6 bg-white">
@@ -96,7 +105,7 @@ export default function BankProductManagement() {
               <Link href="/products/suspended">
                 <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all bg-white text-pink-500 border border-pink-500 hover:bg-pink-50">
                   <Filter size={16} />
-                  이용정지 상품 리스트
+                  정지 상품 리스트
                 </button>
               </Link>
             </div>
@@ -122,62 +131,47 @@ export default function BankProductManagement() {
                 </tr>
               </thead>
               <tbody>
-                {bankProducts.map((product) => (
-                  <tr key={product.id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="py-3 px-2 text-xs font-medium text-gray-800">{product.id}</td>
-                    <td className="py-3 px-2 text-xs font-medium text-gray-800">{product.productName}</td>
-                    <td className="py-3 px-2 text-xs text-gray-600">
-                      {mapProductTypeToFrontend(product.type)}
-                    </td>
-                    <td className="py-3 px-2 text-xs text-gray-600">
-                      {typeof product.budget === "number" ? product.budget.toLocaleString("ko-KR", { style: "currency", currency: "KRW" }) : product.budget}
-                    </td>
-                    <td className="py-3 px-2 text-xs text-gray-600">{product.maxParticipants}</td>
-                    <td className="py-3 px-2 text-xs text-gray-600">{(product.tags || []).join(", ")}</td>
-                    <td className="py-3 px-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${product.status === "승인" ? "bg-green-100 text-green-700" :
-                        product.status === "심사 중" ? "bg-yellow-100 text-yellow-700" :
-                          product.status === "승인 중" ? "bg-blue-100 text-blue-700" :
-                            "bg-red-100 text-red-700"
-                        }`}>
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="py-3 px-1">
-                      {product.status === "승인 중" || product.status === "심사 중" || product.status === "거절" ? (
-                        <button className="w-full px-2 py-1 rounded-md text-xs font-medium text-gray-400 border border-gray-200 cursor-not-allowed">
-                          -
-                        </button>
-                      ) : (
+                {bankProducts.map((product) => {
+                  const status = mapBankProductStatus(product.status as BankProductStatus);
+                  return (
+                    <tr key={product.id} className="border-t border-gray-100 hover:bg-gray-50 transition-colors">
+                      <td className="py-3 px-2 text-xs font-medium text-gray-800">{product.id}</td>
+                      <td className="py-3 px-2 text-xs font-medium text-gray-800">{product.productName}</td>
+                      <td className="py-3 px-2 text-xs text-gray-600">
+                        {mapProductTypeToFrontend(product.type)}
+                      </td>
+                      <td className="py-3 px-2 text-xs text-gray-600">
+                        {typeof product.budget === "number" ? product.budget.toLocaleString("ko-KR", { style: "currency", currency: "KRW" }) : product.budget}
+                      </td>
+                      <td className="py-3 px-2 text-xs text-gray-600">{product.maxParticipants}</td>
+                      <td className="py-3 px-2 text-xs text-gray-600">{(product.tags || []).join(", ")}</td>
+                      <td className="py-3 px-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.bgClass} ${status.textClass}`}>
+                          {status.label}
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-1">
                         <button
-                          onClick={() => handleSuspendProduct(product.id, product.productName)}
-                          className="w-full px-2 py-1 rounded-md text-xs font-medium border border-pink-500 text-pink-500 hover:bg-pink-50 transition-all flex items-center justify-center"
+                          onClick={() => handleViewProductGuide(product.id)}
+                          className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
                         >
-                          <Ban className="w-3 h-3 mr-1" />
-                          판매 정지
+                          <FileText className="w-3 h-3 mr-1" />
+                          안내서
                         </button>
-                      )}
-                    </td>
-                    <td className="py-3 px-1">
-                      <button
-                        onClick={() => handleViewProductGuide(product.id)}
-                        className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
-                      >
-                        <FileText className="w-3 h-3 mr-1" />
-                        안내서
-                      </button>
-                    </td>
-                    <td className="py-3 px-1">
-                      <button
-                        onClick={() =>  handleEditProduct(product.id)}
-                        className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        상세 조회
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="py-3 px-1">
+                        <button
+                          onClick={() => handleEditProduct(product.id)}
+                          className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
+                        >
+                          <Eye className="w-3 h-3 mr-1" />
+                          상세 조회
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -220,22 +214,11 @@ export default function BankProductManagement() {
         </div>
       </div>
 
-      {/* 판매 정지 확인 모달 */}
-      <ConfirmationModal
-        isOpen={confirmModalOpen}
-        onClose={handleCloseConfirmModal}
-        onConfirm={handleConfirmSuspend}
-        title="판매정지 확인"
-        targetName={selectedProduct?.productName || ""}
-        targetType="상품"
-        actionText="판매정지"
-      />
-
       <ProductGuideModal
         isOpen={productGuideModalOpen}
         onClose={() => setProductGuideModalOpen(false)}
         productName={selectedProduct?.productName || ""}
-        pdfUrl={`/pdfs/${selectedProduct?.id}.pdf`}
+        pdfUrl={selectedProduct?.guideFileUrl || ""} // 수정: guideFileUrl 사용
       />
     </div>
   )

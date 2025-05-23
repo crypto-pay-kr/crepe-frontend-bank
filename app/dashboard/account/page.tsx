@@ -4,7 +4,7 @@ import { useTickerData} from "@/hooks/useTickerData";
 import { updateAccountsWithTickerData } from "@/utils/updateAccounts";
 import AccountInfoComponent from "@/components/account/AccountInfo";
 import SubHeader from "@/components/common/SubHeader";
-import AccountRegistrationModal from "@/components/account/ManageModal";
+import AccountRegistrationModal from "@/components/account/AccontManageModal";
 import { fetchBankAccounts } from "@/api/bankAccountApi";
 import { MappedAccount } from "@/types/Account";
 import { TickerData } from "@/types/Coin";

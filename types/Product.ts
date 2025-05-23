@@ -162,3 +162,36 @@ export function mapProductTypeToFrontend(productType: string): string {
             return "예금";
     }
 }
+
+export enum BankProductStatus {
+    APPROVED = "APPROVED",
+    REJECTED = "REJECTED",
+    WAITING = "WAITING",
+    SUSPENDED = "SUSPENDED"
+}
+
+export function mapBankProductStatus(status: BankProductStatus): { label: string; bgClass: string; textClass: string } {
+    switch (status) {
+        case BankProductStatus.APPROVED:
+            return { label: "승인", bgClass: "bg-green-100", textClass: "text-green-700" };
+        case BankProductStatus.REJECTED:
+            return { label: "반려", bgClass: "bg-red-100", textClass: "text-red-700" };
+        case BankProductStatus.WAITING:
+            return { label: "대기중", bgClass: "bg-yellow-100", textClass: "text-yellow-700" };
+        case BankProductStatus.SUSPENDED:
+            return { label: "판매중지", bgClass: "bg-blue-100", textClass: "text-blue-700" };
+        default:
+            return { label: status, bgClass: "bg-gray-100", textClass: "text-gray-700" };
+    }
+}
+
+export interface SuspendedProduct {
+  id: number;
+  productName: string;
+  rejectReason: string;
+  budget: number;
+  status: string;
+  createdAt?: string;
+  startDate?: string;
+}
+

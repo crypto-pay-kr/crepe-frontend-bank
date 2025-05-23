@@ -1,8 +1,7 @@
-import { useState } from "react";
+"use client"
+import { useState, useRef } from "react";
 import Link from "next/link";
-import { changeBankPhone } from "@/api/bankInfoApi";
-
-
+import { changeBankPhone, changeBankCI } from "@/api/bankInfoApi";
 
 interface BankInfoSectionProps {
   bankName?: string;
@@ -11,6 +10,7 @@ interface BankInfoSectionProps {
   bankEmail?: string;
   bankCode?: string;
   onPhoneChange?: () => void;
+  onCIChange?: (newImageUrl: string) => void;
 }
 
 export default function BankInfoSection({
@@ -19,22 +19,56 @@ export default function BankInfoSection({
   bankPhoneNumber = "",
   bankEmail = "",
   bankCode = "",
-  onPhoneChange = () => { },
+  onPhoneChange = () => {},
+  onCIChange = () => {},
 }: BankInfoSectionProps) {
-
   const [phoneInput, setPhoneInput] = useState(bankPhoneNumber);
   const [isEditing, setIsEditing] = useState(false);
+  
+  // CI 이미지 관련 state
+  const [isEditingCI, setIsEditingCI] = useState(false);
+  const [localBankImageUrl, setLocalBankImageUrl] = useState(bankImageUrl);
+  const [selectedCIFile, setSelectedCIFile] = useState<File | null>(null);
+  const ciInputRef = useRef<HTMLInputElement>(null);
 
   const handleChangePhoneClick = async () => {
     try {
       const result = await changeBankPhone(phoneInput);
       console.log(result);
       alert("연결 번호가 변경되었습니다.");
-      setIsEditing(false); // 수정 모드 종료
-      onPhoneChange(); // 부모 컴포넌트에 변경 알림
+      setIsEditing(false);
+      onPhoneChange();
     } catch (error) {
       console.error(error);
       alert("번호 변경 실패");
+    }
+  };
+
+  const handleCIButtonClick = () => {
+    setIsEditingCI(true);
+  };
+
+  // 파일 선택 시 미리보기 처리
+  const handleCIImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setSelectedCIFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setLocalBankImageUrl(previewUrl);
+  };
+
+  // 선택한 파일로 API 호출 (수정 요청)
+  const handleConfirmCIChange = async () => {
+    if (!selectedCIFile) return;
+    try {
+      const result = await changeBankCI(selectedCIFile);
+      alert(result);
+      onCIChange(localBankImageUrl);
+      setIsEditingCI(false);
+      setSelectedCIFile(null);
+    } catch (error) {
+      console.error(error);
+      alert("CI 이미지 변경 실패");
     }
   };
 
@@ -44,7 +78,10 @@ export default function BankInfoSection({
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-md font-medium text-gray-700">은행 CI 이미지 정보</h2>
-          <button className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center transition-colors">
+          <button
+            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center transition-colors"
+            onClick={handleCIButtonClick}
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -62,23 +99,48 @@ export default function BankInfoSection({
             수정하기
           </button>
         </div>
-        <div className="w-full h-40 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center">
-          {bankImageUrl ? (
-            // 이미지가 있으면 로고 표시
+        <div className="w-full h-40 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center relative">
+          {localBankImageUrl ? (
             <img
-              src={bankImageUrl}
+              src={localBankImageUrl}
               alt={bankName}
               className="h-32 object-contain"
             />
           ) : (
-            // 이미지가 없으면 은행 이름 출력
             <div className="w-32 h-32 bg-white rounded-md flex items-center justify-center">
               <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
                 {bankName}
               </div>
             </div>
           )}
+          {isEditingCI && (
+            // 하단 우측에 작은 버튼들이 표시되어 미리보기 이미지는 그대로 보임
+            <div className="absolute bottom-2 right-2 flex gap-2">
+              <button
+                onClick={() => ciInputRef.current?.click()}
+                className="px-3 py-1 bg-pink-500 text-white rounded-md shadow"
+              >
+                업로드
+              </button>
+              {selectedCIFile && (
+                <button
+                  onClick={handleConfirmCIChange}
+                  className="px-3 py-1 bg-pink-500 text-white rounded-md shadow"
+                >
+                  수정완료
+                </button>
+              )}
+            </div>
+          )}
         </div>
+        {/* 파일 인풋은 화면에 보이지 않음 */}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handleCIImageChange}
+          ref={ciInputRef}
+          className="hidden"
+        />
       </div>
 
       {/* Contact Info Section */}
@@ -97,13 +159,12 @@ export default function BankInfoSection({
             />
             <button
               onClick={handleChangePhoneClick}
-              className="w-1/6 ml-1 px-3 py-1 bg-blue-500 text-white rounded-md"
+              className="w-1/6 ml-1 px-3 py-1 bg-pink-500 text-white rounded-md"
             >
               변경
             </button>
           </div>
         </div>
-
 
         <div className="grid grid-cols-2 gap-2 mb-4">
           <div>

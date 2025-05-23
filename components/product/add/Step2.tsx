@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Info, Upload } from "lucide-react";
 
 interface Step2Props {
@@ -27,36 +27,39 @@ export default function Step2({
     const imageInputRef = useRef<HTMLInputElement>(null);
     const guideInputRef = useRef<HTMLInputElement>(null);
 
+    const [localPreviewImage, setLocalPreviewImage] = useState<string>(formData.imageUrl);
+    const [localPreviewGuide, setLocalPreviewGuide] = useState<string>(formData.guideFileUrl);
+
+
+    // 이미지 파일 변경 핸들러
+    const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const previewUrl = URL.createObjectURL(file);
+            setLocalPreviewImage(previewUrl);
+            handleProductImageChange(e);
+        }
+    };
+
+
+    // 안내서 파일 변경 핸들러
+    const onGuideChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const previewUrl = URL.createObjectURL(file);
+            setLocalPreviewGuide(previewUrl);
+            handleProductManualChange(e);
+        }
+    };
+
+    useEffect(() => {
+        setLocalPreviewImage(formData.imageUrl);
+        setLocalPreviewGuide(formData.guideFileUrl);
+    }, [formData.imageUrl, formData.guideFileUrl]);
+
     return (
         <div className="p-6">
             <form onSubmit={handleSubmit}>
-                {/* 이미지 미리보기 */}
-                {formData.imageUrl && (
-                    <div className="mb-6">
-                        <p className="text-sm text-gray-600 mb-2">기존 상품 이미지 미리보기</p>
-                        <img
-                            src={formData.imageUrl}
-                            alt="상품 이미지"
-                            className="w-48 h-auto rounded-md border border-gray-300"
-                        />
-                    </div>
-                )}
-
-                {/* 안내서 PDF 링크 */}
-                {formData.guideFileUrl && (
-                    <div className="mb-6">
-                        <p className="text-sm text-gray-600 mb-2">기존 상품 안내서</p>
-                        <a
-                            href={formData.guideFileUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="underline text-blue-600 hover:text-blue-800"
-                        >
-                            안내서 보기
-                        </a>
-                    </div>
-                )}
-
                 {/* 상세 설명 */}
                 <div className="mb-6">
                     <label className="flex items-center text-sm font-medium text-gray-600 mb-2">
@@ -82,7 +85,7 @@ export default function Step2({
                     <input
                         type="file"
                         accept="image/*"
-                        onChange={handleProductImageChange}
+                        onChange={onImageChange}
                         ref={imageInputRef}
                         style={{ display: "none" }}
                     />
@@ -95,8 +98,19 @@ export default function Step2({
                     </div>
                 </div>
 
+                {/* 이미지 미리보기 */}
+                {localPreviewImage && (
+                    <div className="mb-6">
+                        <p className="text-sm text-gray-600 mb-2">상품 이미지 미리보기</p>
+                        <img
+                            src={localPreviewImage}
+                            alt="상품 이미지"
+                            className="w-48 h-auto rounded-md border border-gray-300"
+                        />
+                    </div>
+                )}
 
-                {/* 상품 안내서 업로드 */}
+                {/* 안내서 PDF 업로드 */}
                 <div className="mb-6">
                     <label className="flex items-center text-sm font-medium text-gray-600 mb-2">
                         <Upload size={16} className="mr-2 text-pink-500" />
@@ -106,7 +120,7 @@ export default function Step2({
                     <input
                         type="file"
                         accept=".pdf,.doc,.docx,.hwp"
-                        onChange={handleProductManualChange}
+                        onChange={onGuideChange}
                         ref={guideInputRef}
                         style={{ display: "none" }}
                     />
@@ -118,6 +132,22 @@ export default function Step2({
                         안내서 파일을 선택해 주세요 (PDF, DOCX, HWP)
                     </div>
                 </div>
+
+                {/* 안내서 PDF 미리보기 (링크 또는 파일명 표시) */}
+                {localPreviewGuide && (
+                    <div className="mb-6">
+                        <p className="text-sm text-gray-600 mb-2">안내서 미리보기</p>
+                        {/* PDF는 embed 또는 링크로 처리 */}
+                        <a
+                            href={localPreviewGuide}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="underline text-blue-600 hover:text-blue-800"
+                        >
+                            안내서 보기
+                        </a>
+                    </div>
+                )}
 
                 <div className="mt-8 flex gap-3">
                     <button
