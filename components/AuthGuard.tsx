@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname} from "next/navigation";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+
+
+  // 루트 페이지와 로그인 페이지는 인증 검사 생략
+  if (pathname === "/" || pathname === "/login") {
+    return <>{children}</>;
+  }
 
   useEffect(() => {
     // 토큰이 없으면 로그인 페이지로 리디렉션
