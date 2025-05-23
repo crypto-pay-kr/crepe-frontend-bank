@@ -1,7 +1,7 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-const UPBIT_URL = process.env.NEXT_PUBLIC_UPBIT_URL;
+const UPBIT_URL = "wss://api.upbit.com/websocket/v1";
 
 interface WebSocketContextValue {
   socket: WebSocket | null;
