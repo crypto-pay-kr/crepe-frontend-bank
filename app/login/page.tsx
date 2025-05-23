@@ -1,13 +1,12 @@
 "use client";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
 import { useState, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from "../../context/AuthContext";
 import Link from 'next/link';
 import { ArrowLeft, Eye, EyeOff, Lock, RefreshCw, AlertCircle } from 'lucide-react';
-import axios from 'axios';
 
-// 환경 변수에서 API URL 가져오기
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 interface CaptchaResponse {
   captchaKey: string;
@@ -67,21 +66,25 @@ function LoginPage() {
     // CAPTCHA 생성 함수
     const generateCaptcha = async () => {
         try {
-            setIsCaptchaLoading(true);
-            setCaptchaValue(''); // 캡차 이미지 갱신 시 입력값 초기화
-            
-            // 실제 백엔드 API 호출 - 환경 변수로 API URL 사용
-            const response = await axios.get<CaptchaResponse>(`${API_BASE_URL}/captcha`);
-            
-            setCaptchaKey(response.data.captchaKey);
-            setCaptchaImageUrl(response.data.captchaImageUrl);
+          setIsCaptchaLoading(true);
+          setCaptchaValue(''); // 캡차 이미지 갱신 시 입력값 초기화
+      
+          // 백엔드 API 호출 - fetch 사용, 환경 변수로 API URL 사용
+          const response = await fetch(`${BASE_URL}/captcha`);
+          if (!response.ok) {
+            throw new Error('CAPTCHA 요청 실패');
+          }
+          const data: CaptchaResponse = await response.json();
+          
+          setCaptchaKey(data.captchaKey);
+          setCaptchaImageUrl(data.captchaImageUrl);
         } catch (error) {
-            console.error('CAPTCHA 오류:', error);
-            setErrorMessage('보안 코드 새로고침 필요');
+          console.error('CAPTCHA 오류:', error);
+          setErrorMessage('보안 코드 새로고침 필요');
         } finally {
-            setIsCaptchaLoading(false);
+          setIsCaptchaLoading(false);
         }
-    };
+      };
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
