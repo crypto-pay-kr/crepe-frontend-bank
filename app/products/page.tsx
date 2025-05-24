@@ -24,6 +24,21 @@ export default function BankProductManagement() {
   const [selectedProduct, setSelectedProduct] = useState<{ id: number; productName: string, guideFileUrl?: string } | null>(null)
   const [bankProducts, setBankProducts] = useState<any[]>([])
 
+  // (1) 상품 목록을 다시 불러오는 함수
+  const refreshProducts = async () => {
+    try {
+      const data = await getProducts();
+      setBankProducts(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // 초기 로드 시 상품 목록 불러오기
+  useEffect(() => {
+    refreshProducts();
+  }, []);
+
   useEffect(() => {
     // API를 호출하여 상품 목록을 가져옴
     async function fetchProducts() {
@@ -37,19 +52,6 @@ export default function BankProductManagement() {
     fetchProducts();
   }, []);
 
-  const handleSuspendProduct = (productId: number, productName: string) => {
-    setSelectedProduct({ id: productId, productName });
-    setConfirmModalOpen(true);
-  }
-
-  const handleConfirmSuspend = () => {
-    if (selectedProduct) {
-      console.log(`상품 판매 정지 처리: ${selectedProduct.id}, ${selectedProduct.productName}`);
-      // 실제 구현에서는 API 호출 등을 통해 상품 판매 정지 처리
-    }
-    setConfirmModalOpen(false);
-    setSelectedProduct(null);
-  }
 
   const handleCloseConfirmModal = () => {
     setConfirmModalOpen(false);
@@ -85,7 +87,7 @@ export default function BankProductManagement() {
         <SubHeader onAdd={handleAddProduct} />
         <div className="p-6 border-b border-gray-100">
 
-</div>
+        </div>
 
         {/* 검색 및 필터 */}
         <div className="p-6 bg-white">

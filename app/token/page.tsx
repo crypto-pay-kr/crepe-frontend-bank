@@ -5,6 +5,8 @@ import { getTokenHistory } from "@/api/tokenApi";
 import TokenRequestModal from "@/components/bank/TokenRequestModal";
 import SubHeader from "@/components/common/SubHeader";
 import { mapTokenRequestStatus } from "@/types/Token";
+import { fetchBankAccounts } from "@/api/bankAccountApi";
+import { AccountInfo } from "@/types/Account";
 
 
 
@@ -16,19 +18,49 @@ export default function BankTokenRequests() {
   const [selectedRequest, setSelectedRequest] = useState<any>(null);
   const [selectedPortfolioDetails, setSelectedPortfolioDetails] = useState<any[]>([]);
   const [selectedTotalSupplyAmount, setSelectedTotalSupplyAmount] = useState(0);
+  const [availableCurrencies, setAvailableCurrencies] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // 1) 데이터 호출 함수
+  const fetchTokenData = async () => {
+    try {
+      const data = await getTokenHistory(0, 10);
+      const sortedData = data.sort(
+        (a: any, b: any) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      setTokenRequests(sortedData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+    // 은행 계좌 목록 (Account)에서 실제로 가진 통화(currencies) 불러오기
+    const fetchUserCurrencies = async () => {
+      try {
+        // 예시 API (bankAccountApi)
+        const bankAccounts: AccountInfo[] = await fetchBankAccounts();
+        const currencies = bankAccounts.map((acc: any) => acc.currency);
+        // 중복 제거
+        const uniqueCurrencies = Array.from(new Set(currencies));
+        setAvailableCurrencies(uniqueCurrencies);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+  
+
+  // 페이지 진입 시 최초 한번 호출
   useEffect(() => {
-    getTokenHistory(0, 10)
-      .then((data) => {
-        const sortedData = data.sort(
-          (a: any, b: any) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-        setTokenRequests(sortedData);
-      })
-      .catch((err) => console.error(err));
+    fetchTokenData();
+    fetchUserCurrencies(); 
   }, []);
+
+  // 토큰 추가 or 수정 후 재호출
+  const handleTokenUpdated = () => {
+    fetchTokenData(); // 새로고침 함수 실행
+  };
+
 
   const handleConfirm = (request: any) => {
     // 요청된 전체 데이터 셋을 그대로 보관
@@ -39,6 +71,8 @@ export default function BankTokenRequests() {
   const handleApproveRequest = () => {
     console.log(`${selectedBank} 승인 처리`);
     setIsDetailsModalOpen(false);
+    setIsAddTokenModalOpen(false); 
+    handleTokenUpdated();
   };
 
   const handleAddToken = () => {
@@ -46,7 +80,7 @@ export default function BankTokenRequests() {
       alert("이미 생성된 토큰이 존재합니다");
       return;
     }
-  
+
     setSelectedPortfolioDetails([]); // 신규 추가는 빈 포트폴리오로 설정
     setSelectedTotalSupplyAmount(0); // 신규 추가는 총 공급량 0으로 설정
     setIsAddTokenModalOpen(true);
@@ -55,7 +89,10 @@ export default function BankTokenRequests() {
   return (
     <div className="flex-1 h-screen p-8 overflow-auto bg-gray-50">
       <div className="bg-white rounded-lg shadow-sm p-6">
-        <SubHeader onAdd={handleAddToken} />
+        <SubHeader
+          onAdd={handleAddToken}
+          hideAddButton={tokenRequests.length > 0}
+        />
         {/* 헤더 섹션 */}
         <div className="p-6 border-b border-gray-100">
 
@@ -121,7 +158,7 @@ export default function BankTokenRequests() {
                             onClick={() => handleConfirm(request)}
                             className="px-3 py-1.5 rounded-md text-sm font-medium border border-pink-500 bg-pink-500 text-white hover:bg-pink-600 transition-all flex items-center gap-1.5 cursor-pointer"
                           >
-                            <Check size={14} /> 상세 확인
+                            <Check size={14} /> 발행 수정
                           </button>
                         </div>
                       </td>
@@ -174,6 +211,7 @@ export default function BankTokenRequests() {
         onSubmit={handleApproveRequest}
         requestData={!isAddTokenModalOpen ? selectedRequest : undefined}
         isAddMode={isAddTokenModalOpen}
+        availableCurrencies={availableCurrencies} 
       />
     </div>
   );

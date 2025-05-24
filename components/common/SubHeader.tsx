@@ -1,12 +1,12 @@
-
 import { ArrowLeft, PlusCircle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 interface SubHeaderProps {
-  onAdd?: () => void; // 추가 버튼 클릭 시 호출할 함수
+  onAdd?: () => void;
+  hideAddButton?: boolean; // 추가
 }
 
-const SubHeader: React.FC<SubHeaderProps> = ({ onAdd }) => {
+const SubHeader: React.FC<SubHeaderProps> = ({ onAdd, hideAddButton }) => {
   const pathname = usePathname();
   const router = useRouter();
   const isTokenManagement = pathname === "/token";
@@ -16,8 +16,9 @@ const SubHeader: React.FC<SubHeaderProps> = ({ onAdd }) => {
   return (
     <div className="p-8 bg-white shadow-sm rounded-md mb-5 border border-gray-100">
       <div className="flex items-center justify-between">
+        {/* 뒤로가기, 페이지 경로 표시 */}
         <div className="flex items-center space-x-3">
-          <button 
+          <button
             className="rounded-full hover:bg-gray-100 transition-colors duration-200"
             onClick={() => router.back()}
           >
@@ -49,8 +50,11 @@ const SubHeader: React.FC<SubHeaderProps> = ({ onAdd }) => {
             </span>
           </div>
         </div>
-        {!isProductsuspended && (
-          <button onClick={onAdd}
+
+        {/* 추가 버튼 (isProductsuspended가 아니고, hideAddButton이 false일 때만 노출) */}
+        {!isProductsuspended && !hideAddButton && (
+          <button
+            onClick={onAdd}
             className="flex items-center gap-2 bg-white rounded-full px-4 py-2 shadow-sm border border-gray-100 hover:shadow-md transition-all"
           >
             <PlusCircle size={18} className="text-pink-500" />

@@ -1,3 +1,12 @@
+
+
+export interface RequestDTO {
+  tokenName: string;
+  tokenCurrency: string;
+  changeReason: string;
+  portfolioCoins: PortfolioCoin[];
+}
+
 export interface PortfolioItem {
     coinName?: string;
     currency: string;

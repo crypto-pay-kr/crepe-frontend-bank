@@ -128,7 +128,7 @@ export default function Step1({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* 상품명 */}
-                    <div className="md:col-span-2">
+                    <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
                             상품명
                         </label>
@@ -143,7 +143,7 @@ export default function Step1({
                         />
                     </div>
 
-                    {/* 상품 유형 */}
+                    {/* 상품 종류 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
                             상품 종류
@@ -166,7 +166,7 @@ export default function Step1({
                         </div>
                     </div>
 
-                    {/* 상품 예치 자금 (budget) */}
+                    {/* 상품 예치 자금 (총 한도) */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
                             상품 예치 자금 (총 한도)
@@ -229,7 +229,7 @@ export default function Step1({
                         />
                     </div>
 
-                    {/* 시작일, 종료일 */}
+                    {/* 상품 시작일 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
                             상품 시작일
@@ -242,6 +242,8 @@ export default function Step1({
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
+
+                    {/* 상품 종료일 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
                             상품 종료일
@@ -254,7 +256,6 @@ export default function Step1({
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
-
 
                     {/* 자격 조건 섹션 */}
                     <div className="md:col-span-2">
