@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import BankBalanceSection from "@/components/bank/bank-balance-section";
 import { fetchBankInfoDetail } from "@/api/bankInfoApi";
-import BankHeader from "@/components/common/bank-header";
+import BankHeader from "@/components/common/BankHeader";
 import BankInfoSection from "@/components/bank/BankInfoSection";
 import { useBankContext } from "@/context/BankContext";
 import { BankInfoDetail } from "@/types/Bank";

@@ -4,17 +4,17 @@ import React, { useState } from "react"
 import { X, ChevronDown } from "lucide-react"
 import { changeBankAccount, registerBankAccount } from "@/api/bankAccountApi"
 
-interface AccountRegistrationModalProps {
+interface AccountManageModalProps {
     isOpen: boolean
     onClose: () => void
     onSubmit: (data: {
-        depositorName: string
+        managerName: string
         currency: string
         address: string
         tag: string
     }) => void
     initialData?: {
-        bankName: string;
+        managerName: string;
         addressResponse: {
             currency: string;
             address: string;
@@ -24,8 +24,8 @@ interface AccountRegistrationModalProps {
     };
 }
 
-export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, initialData }: AccountRegistrationModalProps) {
-    const [depositorName, setDepositorName] = useState(initialData?.bankName || "");
+export default function AccountManageModal({ isOpen, onClose, onSubmit, initialData }: AccountManageModalProps) {
+    const [managerName, setManagerName] = useState(initialData?.managerName || "");
     const [currency, setCurrency] = useState(initialData?.addressResponse.currency || "XRP");
     const [address, setAddress] = useState(initialData?.addressResponse.address || "");
     const [tag, setTag] = useState(initialData?.addressResponse.tag || "");
@@ -42,7 +42,7 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
             setIsSubmitting(true)
 
             const data = {
-                depositorName,
+                managerName,
                 currency,
                 address,
                 tag,
@@ -50,17 +50,17 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
 
             if (initialData) {
                 console.log("수정 요청 데이터:", data)
-                await changeBankAccount(depositorName, currency, address, tag) // 수정 API 호출
+                await changeBankAccount(managerName, currency, address, tag) // 수정 API 호출
             } else {
                 console.log("등록 요청 데이터:", data)
-                await registerBankAccount(depositorName, currency, address, tag) // 등록 API 호출
+                await registerBankAccount(managerName, currency, address, tag) // 등록 API 호출
             }
 
             onSubmit(data);
             onClose();
 
             // 폼 데이터 초기화
-            setDepositorName("");
+            setManagerName("");
             setCurrency("XRP");
             setAddress("");
             setTag("");
@@ -87,14 +87,14 @@ export default function AccountRegistrationModal({ isOpen, onClose, onSubmit, in
 
                 {/* Body */}
                 <div className="p-6 space-y-6">
-                    {/* Depositor Name */}
+                    {/* Manager Name */}
                     <div className="space-y-2">
                         <label className="block text-lg text-gray-700 font-medium">계좌 입금자 이름</label>
                         <input
                             type="text"
-                            value={depositorName}
-                            onChange={(e) => setDepositorName(e.target.value)}
-                            placeholder="행명 입력"
+                            value={managerName}
+                            onChange={(e) => setManagerName(e.target.value)}
+                            placeholder="담당자 이름"
                             className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 text-gray-700"
                         />
                     </div>

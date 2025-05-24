@@ -18,7 +18,7 @@ interface AccountInfoProps {
 
 export default function AccountInfoComponent({
   title = "계좌 정보",
-  backPath = "/dashboard/account",
+  backPath = "/account",
   accounts = [],
   tickerData = {},
 }: AccountInfoProps) {
@@ -28,6 +28,7 @@ export default function AccountInfoComponent({
   console.log("부모에서 받은 tickerData:", tickerData);
   const [modalData, setModalData] = useState<{
     bankName: string;
+    managerName: string;
     addressResponse: {
       currency: string;
       address: string;
@@ -74,6 +75,7 @@ export default function AccountInfoComponent({
       const data = await getAccountByCurrency(account.coinCurrency);
       setModalData({
         bankName: data.bankName,
+        managerName: data.managerName,
         addressResponse: {
           currency: data.addressResponse.currency,
           address: data.addressResponse.address,
@@ -125,7 +127,7 @@ export default function AccountInfoComponent({
                 {accounts.map((account, index) => (
                   <tr key={index} className="border-b border-gray-100">
                     <td className="py-4 px-4 text-gray-800">{account.coinCurrency}</td>
-                    <td className="py-4 px-4 text-gray-800">{account.depositorName}</td>
+                    <td className="py-4 px-4 text-gray-800">{account.managerName}</td>
                     <td className="py-4 px-4 text-gray-800 max-w-xs truncate">
                       <span title={account.coinAccount}>{account.coinAccount}</span>
                     </td>

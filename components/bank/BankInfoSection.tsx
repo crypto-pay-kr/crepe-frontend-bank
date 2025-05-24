@@ -12,7 +12,6 @@ interface BankInfoSectionProps {
   onPhoneChange?: () => void;
   onCIChange?: (newImageUrl: string) => void;
 }
-
 export default function BankInfoSection({
   bankName = "",
   bankImageUrl = "",
@@ -24,6 +23,7 @@ export default function BankInfoSection({
 }: BankInfoSectionProps) {
   const [phoneInput, setPhoneInput] = useState(bankPhoneNumber);
   const [isEditing, setIsEditing] = useState(false);
+
   
   // CI 이미지 관련 state
   const [isEditingCI, setIsEditingCI] = useState(false);
@@ -32,6 +32,11 @@ export default function BankInfoSection({
   const ciInputRef = useRef<HTMLInputElement>(null);
 
   const handleChangePhoneClick = async () => {
+    // 기존 번호와 동일한지 체크
+    if (phoneInput === bankPhoneNumber) {
+      alert("기존 번호와 동일합니다. 새로운 번호를 입력해주세요.");
+      return;
+    }
     try {
       const result = await changeBankPhone(phoneInput);
       console.log(result);
@@ -194,7 +199,7 @@ export default function BankInfoSection({
         <div className="space-y-3">
           <Link
             href={{
-              pathname: "/dashboard/account",
+              pathname: "/account",
             }}
             className="text-xs text-gray-500"
           >

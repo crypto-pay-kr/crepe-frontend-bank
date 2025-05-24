@@ -16,7 +16,8 @@ export async function fetchBankInfoDetail() {
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch bank info detail");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to fetch bank info detail");
   }
   return response.json();
 }
@@ -38,7 +39,8 @@ export async function changeBankPhone(phoneNumber: string) {
     body: JSON.stringify({ bankPhoneNumber: phoneNumber }),
   });
   if (!response.ok) {
-    throw new Error("Failed to change phone number");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to change phone number");
   }
   return response.text(); // 예: "담당자 연결 번호 변경 성공"
 }
@@ -60,7 +62,8 @@ export async function changeBankCI(ciImage: File) {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to change bank CI image");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to change bank CI image");
   }
   return response.text(); // 예: "은행 CI 이미지 변경 성공"
 }

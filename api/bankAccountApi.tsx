@@ -15,12 +15,13 @@ export async function fetchBankAccounts() {
     }
   });
   if (!response.ok) {
-    throw new Error('Failed to fetch accounts');
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to fetch accounts");
   }
   return response.json();
 }
 
-export async function registerBankAccount(bankName: string, currency: string, address: string, tag?: string): Promise<void> {
+export async function registerBankAccount(managerName: string, currency: string, address: string, tag?: string): Promise<void> {
   const accessToken = getAccessToken();
   if (!accessToken) {
     throw new Error("Access token is missing");
@@ -33,7 +34,7 @@ export async function registerBankAccount(bankName: string, currency: string, ad
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
-      bankName,
+      managerName,
       getAddressRequest: {
         currency,
         address,
@@ -50,6 +51,7 @@ export async function registerBankAccount(bankName: string, currency: string, ad
 
 export async function getAccountByCurrency(currency: string): Promise<{
   bankName: string;
+  managerName: string;
   addressResponse: {
     currency: string;
     address: string;
@@ -78,7 +80,7 @@ export async function getAccountByCurrency(currency: string): Promise<{
 }
 
 export async function changeBankAccount(
-  depositorName: string,
+  managerName: string,
   currency: string,
   address: string,
   tag: string
@@ -95,7 +97,7 @@ export async function changeBankAccount(
       Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify({
-      bankName: depositorName,
+      managerName: managerName,
       getAddressRequest: {
         currency,
         address,

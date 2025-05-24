@@ -31,10 +31,10 @@ export async function registerProduct(
             },
             body: formData,
         });
-
         if (!response.ok) {
-            throw new Error("Failed to register product");
-        }
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to register product");
+          }
 
         // 서버가 JSON이 아닌 메시지 문자열로 응답할 가능성 대비
         const resultText = await response.text();
@@ -62,8 +62,9 @@ export async function getProducts() {
         },
     });
     if (!response.ok) {
-        throw new Error("상품 조회에 실패했습니다.");
-    }
+        const errorData = await response.json();
+        throw new Error(errorData.message || "상품 조회에 실패했습니다.");
+      }
     return response.json();
 }
 
@@ -81,8 +82,9 @@ export async function getProductById(id: number): Promise<FormData> {
         },
     });
     if (!response.ok) {
-        throw new Error(`상품 조회에 실패했습니다. status: ${response.status}`);
-    }
+        const errorData = await response.json();
+        throw new Error(errorData.message || `상품 조회에 실패했습니다. status: ${response.status}`);
+      }
     return response.json();
 }
 
@@ -99,7 +101,8 @@ export async function getSuspendedProducts() {
         },
     });
     if (!response.ok) {
-        throw new Error("판매중지 상품 조회에 실패했습니다.");
-    }
+        const errorData = await response.json();
+        throw new Error(errorData.message || "판매중지 상품 조회에 실패했습니다.");
+      }
     return response.json();
 }

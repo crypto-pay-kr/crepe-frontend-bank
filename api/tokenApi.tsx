@@ -14,7 +14,8 @@ export async function getTokenHistory(page = 0, size = 10) {
     },
   });
   if (!response.ok) {
-    throw new Error("Failed to fetch token history");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to fetch token history");
   }
   return response.json();
 }
@@ -44,7 +45,8 @@ export async function createBankToken(requestData: {
   });
 
   if (!response.ok) {
-    throw new Error("Failed to create bank token");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to create bank token");
   }
   // 서버가 JSON이 아닌 메시지 문자열을 반환하는 경우 예외 처리
   const resultText = await response.text();
@@ -79,9 +81,9 @@ export async function recreateBankToken(requestData: {
     },
     body: JSON.stringify(requestData),
   });
-
   if (!response.ok) {
-    throw new Error("Failed to create bank token");
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to recreate bank token");
   }
 
   // 서버가 JSON이 아닌 메시지 문자열을 반환하는 경우 예외 처리

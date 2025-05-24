@@ -2,7 +2,7 @@ export interface MappedAccount {
     bankName: string;
     coinCurrency: string;
     coinName: string;
-    depositorName: string;
+    managerName: string;
     coinAccount: string;
     tagAccount?: string;
     status: string;
@@ -22,7 +22,7 @@ export interface AccountBalance {
 export interface AccountInfo {
     coinName: string;
     coinCurrency: string;
-    depositorName: string;
+    managerName: string;
     coinAccount: string;
     tagAccount?: string;
     balance: AccountBalance;
