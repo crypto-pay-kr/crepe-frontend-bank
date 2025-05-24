@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation"
 import {
   Search, ChevronLeft, ChevronRight, Filter, Ban, FileText, Eye, PlusCircle, ArrowLeft
 } from "lucide-react"
-import { ConfirmationModal } from "@/components/common/confirm-modal"
 import SubHeader from "@/components/common/SubHeader"
 import ProductGuideModal from "@/components/product/ProductGuideModal"
 import { getProducts } from "@/api/productApi"
