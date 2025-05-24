@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { X, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useTickerData } from "@/hooks/useTickerData";
-
-import { coinMapping } from "@/types/Coin"; 
+import { toast } from "react-toastify";
+import { coinMapping } from "@/types/Coin";
 import { createBankToken, recreateBankToken } from "@/api/tokenApi";
 import { PortfolioItem, PortfolioCoin, RequestDTO } from "@/types/Token";
 import { TokenConfirmModal } from "./TokenConfirmModal";
@@ -134,41 +134,45 @@ export default function TokenRequestModal({
   };
 
   const handleConfirm = async () => {
-    if (isReadOnlyMode) {
-      // 수정(재요청) 모드: 기존 데이터 + newAmount -> recreateBankToken
-      const requestDTO = {
-        tokenName: formData.tokenName,
-        tokenCurrency: formData.currency,
-        changeReason: formData.changeReason,
-        portfolioCoins: formData.portfolio.map((item: any) => ({
-          coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
-          currency: item.currency,
-          amount: parseFloat(item.newAmount) || 0,
-          currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
-        })),
-      };
-      const result = await recreateBankToken(requestDTO);
-      console.log("재요청 성공:", result);
-      onSubmit(requestDTO);
-    } else {
-      // 새 생성 모드
-      const requestDTO: RequestDTO = {
-        tokenName: formData.tokenName,
-        tokenCurrency: formData.currency,
-        changeReason: formData.changeReason,
-        portfolioCoins: formData.portfolio.map((item: PortfolioItem): PortfolioCoin => ({
-          coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
-          currency: item.currency,
-          amount: parseFloat(item.amount ?? "") || 0,
-          currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
-        })),
-      };
-      console.log("생성 로직 DTO:", requestDTO);
-      const result = await createBankToken(requestDTO);
-      onSubmit(requestDTO);
+    try {
+      if (isReadOnlyMode) {
+        // 수정(재요청) 모드: 기존 데이터 + newAmount -> recreateBankToken
+        const requestDTO = {
+          tokenName: formData.tokenName,
+          tokenCurrency: formData.currency,
+          changeReason: formData.changeReason,
+          portfolioCoins: formData.portfolio.map((item: any) => ({
+            coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
+            currency: item.currency,
+            amount: parseFloat(item.newAmount) || 0,
+            currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
+          })),
+        };
+        const result = await recreateBankToken(requestDTO);
+        console.log("재요청 성공:", result);
+        onSubmit(requestDTO);
+      } else {
+        // 새 생성 모드
+        const requestDTO: RequestDTO = {
+          tokenName: formData.tokenName,
+          tokenCurrency: formData.currency,
+          changeReason: formData.changeReason,
+          portfolioCoins: formData.portfolio.map((item: PortfolioItem): PortfolioCoin => ({
+            coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
+            currency: item.currency,
+            amount: parseFloat(item.amount ?? "") || 0,
+            currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
+          })),
+        };
+        await createBankToken(requestDTO);
+        onSubmit(requestDTO);
+      }
+      setShowConfirmModal(false);
+      onClose();
+    } catch (err: any) {
+      console.error("토큰 요청 오류:", err);
+      toast.error(err.message || "토큰 요청에 실패했습니다.");
     }
-    setShowConfirmModal(false);
-    onClose();
   };
 
   return (
@@ -259,7 +263,7 @@ export default function TokenRequestModal({
                 <div className="border border-pink-200 bg-gradient-to-r from-pink-50/30 to-rose-50/30 rounded-md p-3 mt-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="relative flex-1">
-                    <select
+                      <select
                         value={selectedToken}
                         onChange={(e) => setSelectedToken(e.target.value)}
                         className="w-full appearance-none border border-pink-200 rounded-md p-2 pr-8 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
@@ -319,13 +323,12 @@ export default function TokenRequestModal({
                   <span className="font-medium text-gray-800">{code}:</span>{" "}
                   {data.trade_price.toLocaleString()} KRW
                   <span
-                    className={`ml-2 font-medium ${
-                      data.change === "RISE"
+                    className={`ml-2 font-medium ${data.change === "RISE"
                         ? "text-red-500"
                         : data.change === "FALL"
-                        ? "text-blue-500"
-                        : ""
-                    }`}
+                          ? "text-blue-500"
+                          : ""
+                      }`}
                   >
                     ({data.signed_change_rate.toFixed(2)}%)
                   </span>

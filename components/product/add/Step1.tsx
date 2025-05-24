@@ -1,45 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, Plus, X, Tag } from "lucide-react";
 import {
-    InterestRateCategory,
-    AVAILABLE_TAGS,
-    AGE_CATEGORIES,
-    AMOUNT_CATEGORIES,
-    DEPOSIT_CATEGORIES,
-    AGE_OPTIONS,
-    OCCUPATION_OPTIONS,
-    INCOME_OPTIONS,
+    InterestRateCategory, AVAILABLE_TAGS, AGE_CATEGORIES, AMOUNT_CATEGORIES, DEPOSIT_CATEGORIES, AGE_OPTIONS, OCCUPATION_OPTIONS, INCOME_OPTIONS,
 } from "@/types/Product";
+import { parseJoinConditions } from "@/utils/parseJoinConditions";
+import { getAllTags } from "@/api/productApi";
 
-// joinConditions 파싱 함수
-function parseJoinConditions(joinConditions: string) {
-    const result = {
-        ageGroups: [] as string[],
-        occupations: [] as string[],
-        incomeLevels: [] as string[],
-    };
-    // 예: "[ageGroups: [ALL_AGES], occupations: [ALL_OCCUPATIONS], incomeLevels: [NO_LIMIT], allAges: true]"
-    // 양쪽 대괄호 제거
-    const trimmed = joinConditions.replace(/^\[|\]$/g, "");
-    // 각 key: [value, ...] 패턴 추출
-    const regex = /(\w+):\s*\[([^\]]*)\]/g;
-    let match;
-    while ((match = regex.exec(trimmed))) {
-        const key = match[1]; // ageGroups, occupations, incomeLevels
-        const values = match[2]
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        if (key === "ageGroups") {
-            result.ageGroups = values;
-        } else if (key === "occupations") {
-            result.occupations = values;
-        } else if (key === "incomeLevels") {
-            result.incomeLevels = values;
-        }
-    }
-    return result;
-}
 
 interface Step1Props {
     formData: {
@@ -106,6 +72,37 @@ export default function Step1({
     isModify,
 }: Step1Props) {
 
+    const [tagInput, setTagInput] = useState("");
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
+
+    const isNextDisabled = !(
+        formData.productName &&
+        formData.productType &&
+        formData.depositAmount &&
+        formData.interestRate &&
+        formData.startDate &&
+        formData.endDate &&
+        formData.tags.length > 0
+    );
+
+    const today = new Date().toISOString().split("T")[0];
+    const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && tagInput.trim() !== "") {
+            e.preventDefault()
+            e.stopPropagation()
+            handleAddTag(tagInput.trim())
+            setTagInput("")
+        }
+    }
+
+    useEffect(() => {
+        getAllTags()
+            .then(setAvailableTags)
+            .catch((e) => console.error("태그 조회 실패:", e));
+    }, []);
+
+
+
     const parsedJoin = formData.joinConditions
         ? parseJoinConditions(formData.joinConditions)
         : {
@@ -119,12 +116,7 @@ export default function Step1({
                 상품 기본 정보
             </h2>
 
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleNextStep();
-                }}
-            >
+            <div onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault() }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     {/* 상품명 */}
@@ -222,9 +214,9 @@ export default function Step1({
                         <input
                             type="number"
                             name="maxParticipants"
-                            value={formData.maxParticipants}
-                            onChange={handleChange}
-                            placeholder="예: 1000"
+                            value={isModify ? formData.maxParticipants : ""}
+                            readOnly
+                            placeholder="자동 계산되어 입력됩니다"
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -239,6 +231,7 @@ export default function Step1({
                             name="startDate"
                             value={formData.startDate}
                             onChange={handleChange}
+                            min={today}
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -253,6 +246,7 @@ export default function Step1({
                             name="endDate"
                             value={formData.endDate}
                             onChange={handleChange}
+                            min={today}
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -369,15 +363,15 @@ export default function Step1({
                                 <div className="relative flex-1">
                                     <input
                                         type="text"
-                                        placeholder="태그 선택"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 border-none rounded-l-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all cursor-pointer"
-                                        readOnly
+                                        name="tagInput"
+                                        placeholder="태그를 입력 후 Enter 또는 클릭하여 추가"
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyDown={handleTagKeyDown}
                                         onClick={() => setShowTagSelector(true)}
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 rounded-l-lg focus:ring-2 focus:ring-pink-200 transition-all"
                                     />
-                                    <Tag
-                                        size={18}
-                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                                    />
+                                    <Tag size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                 </div>
                                 <button
                                     type="button"
@@ -390,11 +384,14 @@ export default function Step1({
 
                             {showTagSelector && (
                                 <div className="absolute z-10 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                    {AVAILABLE_TAGS.map((tag, idx) => (
+                                    {availableTags.map((tag, idx) => (
                                         <div
                                             key={idx}
+                                            onClick={() => {
+                                                handleAddTag(tag);
+                                                setShowTagSelector(false);
+                                            }}
                                             className="p-3 hover:bg-pink-50 cursor-pointer flex items-center text-sm text-gray-700"
-                                            onClick={() => handleAddTag(tag)}
                                         >
                                             <Tag size={14} className="mr-2 text-pink-400" />
                                             {tag}
@@ -520,13 +517,18 @@ export default function Step1({
                         취소
                     </button>
                     <button
-                        type="submit"
-                        className="flex-1 p-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                        type="button"
+                        onClick={handleNextStep}
+                        disabled={isNextDisabled}
+                        className={`flex-1 p-3 rounded-lg transition-all 
+                            ${isNextDisabled
+                                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                : "bg-pink-500 text-white hover:bg-pink-600"}`}
                     >
                         다음
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     );
 }

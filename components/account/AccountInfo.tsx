@@ -1,9 +1,8 @@
 "use client"
 
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { toast } from "react-toastify";
 import { getAccountByCurrency } from "@/api/bankAccountApi";
-import { useState, useEffect } from "react"
+import { useState} from "react"
 import AccountRegistrationModal from "./AccontManageModal";
 import { TickerData } from "@/types/Coin";
 import { AccountInfo } from "@/types/Account";
@@ -88,7 +87,7 @@ export default function AccountInfoComponent({
       setIsManageModalOpen(true);
     } catch (error: any) {
       console.error("계좌 정보 가져오기 실패:", error.message);
-      alert(`계좌 정보 가져오기 실패: ${error.message}`);
+      toast.error(error.message || "계좌 정보 가져오기 실패.");
     }
   };
 

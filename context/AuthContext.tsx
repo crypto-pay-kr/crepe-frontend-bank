@@ -19,10 +19,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   
   const login = async (email: string, password: string, captchaKey: string, captchaValue: string) => {
     try {
-      console.log("로그인 시도:", { email, password });
       const loginBody: BankLoginRequest = { email, password, captchaKey, captchaValue };
       const { accessToken, refreshToken, role } = await BankLogin(loginBody);
-      console.log("로그인 성공:", { accessToken, refreshToken, role });
       
       if (role === 'BANK') {
         if (typeof window !== "undefined") {

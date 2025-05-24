@@ -74,7 +74,7 @@ export async function getProductById(id: number): Promise<FormData> {
         throw new Error("Access token is missing");
     }
 
-    const response = await fetch(`${API_BASE_URL}/bank/product/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/bank/products/${id}`, {
         method: "GET",
         headers: {
             "Content-Type": "application/json",
@@ -106,3 +106,22 @@ export async function getSuspendedProducts() {
       }
     return response.json();
 }
+
+
+/** 모든 태그 조회 */
+export async function getAllTags(): Promise<string[]> {
+    const accessToken = getAccessToken();
+    if (!accessToken) throw new Error("Access token is missing");
+    const res = await fetch(`${API_BASE_URL}/bank/products/tags`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "태그 조회에 실패했습니다");
+    }
+    return res.json();
+  }
