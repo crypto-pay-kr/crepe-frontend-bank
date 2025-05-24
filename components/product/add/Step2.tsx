@@ -148,21 +148,32 @@ export default function Step2({
                         </a>
                     </div>
                 )}
-
                 <div className="mt-8 flex gap-3">
-                    <button
-                        type="button"
-                        onClick={handlePrevStep}
-                        className="flex-1 p-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                        이전
-                    </button>
-                    <button
-                        type="submit"
-                        className="flex-1 p-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-                    >
-                        {isModify ? "수정하기" : "요청하기"}
-                    </button>
+                    {isModify ? (
+                        <button
+                            type="button"
+                            onClick={handlePrevStep}
+                            className="flex-1 p-4 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-lg font-medium"
+                        >
+                            이전
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={handlePrevStep}
+                                className="flex-1 p-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            >
+                                이전
+                            </button>
+                            <button
+                                type="submit"
+                                className="flex-1 p-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                            >
+                                요청하기
+                            </button>
+                        </>
+                    )}
                 </div>
             </form>
         </div>

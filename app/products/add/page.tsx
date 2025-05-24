@@ -148,15 +148,17 @@ function AddProductContent() {
   };
 
   const handleAddTag = (tag: string) => {
-    if (!formData.tags.includes(tag)) {
+    const newTag = tag.trim();
+    if (newTag === "") return;
+    if (!formData.tags.includes(newTag)) {
       setFormData((prev) => ({
         ...prev!,
-        tags: [...prev!.tags, tag],
+        tags: [...prev!.tags, newTag],
       }));
     }
     setShowTagSelector(false);
   };
-
+  
   const handleRemoveTag = (idx: number) => {
     setFormData((prev) => {
       const tags = [...prev!.tags];

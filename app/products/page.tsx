@@ -53,11 +53,6 @@ export default function BankProductManagement() {
   }, []);
 
 
-  const handleCloseConfirmModal = () => {
-    setConfirmModalOpen(false);
-    setSelectedProduct(null);
-  }
-
   // BankProductManagement 페이지 (app/products/page.tsx)
   const handleViewProductGuide = (productId: number) => {
     const product = bankProducts.find((p) => p.id === productId);
@@ -123,8 +118,8 @@ export default function BankProductManagement() {
                   <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">#</th>
                   <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">상품명</th>
                   <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">종류</th>
-                  <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">총 예치금</th>
-                  <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">총 예치 인원</th>
+                  <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">상품 예치 자금</th>
+                  <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">최대 인원</th>
                   <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">혜택</th>
                   <th className="py-3 px-2 text-left font-bold text-gray-500 text-xs">상태</th>
                   <th className="py-3 px-2 text-center font-bold text-gray-500 text-xs" colSpan={3}>
@@ -143,7 +138,9 @@ export default function BankProductManagement() {
                         {mapProductTypeToFrontend(product.type)}
                       </td>
                       <td className="py-3 px-2 text-xs text-gray-600">
-                        {typeof product.budget === "number" ? product.budget.toLocaleString("ko-KR", { style: "currency", currency: "KRW" }) : product.budget}
+                        {typeof product.budget === "number"
+                          ? product.budget.toLocaleString("ko-KR")
+                          : product.budget}
                       </td>
                       <td className="py-3 px-2 text-xs text-gray-600">{product.maxParticipants}</td>
                       <td className="py-3 px-2 text-xs text-gray-600">{(product.tags || []).join(", ")}</td>

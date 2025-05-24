@@ -1,45 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronDown, Plus, X, Tag } from "lucide-react";
 import {
-    InterestRateCategory,
-    AVAILABLE_TAGS,
-    AGE_CATEGORIES,
-    AMOUNT_CATEGORIES,
-    DEPOSIT_CATEGORIES,
-    AGE_OPTIONS,
-    OCCUPATION_OPTIONS,
-    INCOME_OPTIONS,
+    InterestRateCategory, AVAILABLE_TAGS, AGE_CATEGORIES, AMOUNT_CATEGORIES, DEPOSIT_CATEGORIES, AGE_OPTIONS, OCCUPATION_OPTIONS, INCOME_OPTIONS,
 } from "@/types/Product";
+import { parseJoinConditions } from "@/utils/parseJoinConditions";
 
-// joinConditions 파싱 함수
-function parseJoinConditions(joinConditions: string) {
-    const result = {
-        ageGroups: [] as string[],
-        occupations: [] as string[],
-        incomeLevels: [] as string[],
-    };
-    // 예: "[ageGroups: [ALL_AGES], occupations: [ALL_OCCUPATIONS], incomeLevels: [NO_LIMIT], allAges: true]"
-    // 양쪽 대괄호 제거
-    const trimmed = joinConditions.replace(/^\[|\]$/g, "");
-    // 각 key: [value, ...] 패턴 추출
-    const regex = /(\w+):\s*\[([^\]]*)\]/g;
-    let match;
-    while ((match = regex.exec(trimmed))) {
-        const key = match[1]; // ageGroups, occupations, incomeLevels
-        const values = match[2]
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-        if (key === "ageGroups") {
-            result.ageGroups = values;
-        } else if (key === "occupations") {
-            result.occupations = values;
-        } else if (key === "incomeLevels") {
-            result.incomeLevels = values;
-        }
-    }
-    return result;
-}
 
 interface Step1Props {
     formData: {
@@ -105,6 +70,20 @@ export default function Step1({
     handleToggleEligibility,
     isModify,
 }: Step1Props) {
+
+    const [tagInput, setTagInput] = useState("");
+
+    const today = new Date().toISOString().split("T")[0];
+    const handleTagKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            const newTag = e.currentTarget.value.trim();
+            if (newTag !== "") {
+                handleAddTag(newTag);
+                setTagInput("");
+            }
+        }
+    };
 
     const parsedJoin = formData.joinConditions
         ? parseJoinConditions(formData.joinConditions)
@@ -222,9 +201,9 @@ export default function Step1({
                         <input
                             type="number"
                             name="maxParticipants"
-                            value={formData.maxParticipants}
-                            onChange={handleChange}
-                            placeholder="예: 1000"
+                            value={isModify ? formData.maxParticipants : ""}
+                            readOnly
+                            placeholder="자동 계산되어 입력됩니다"
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -239,6 +218,7 @@ export default function Step1({
                             name="startDate"
                             value={formData.startDate}
                             onChange={handleChange}
+                            min={today}
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -253,6 +233,7 @@ export default function Step1({
                             name="endDate"
                             value={formData.endDate}
                             onChange={handleChange}
+                            min={today}
                             className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
                         />
                     </div>
@@ -369,9 +350,11 @@ export default function Step1({
                                 <div className="relative flex-1">
                                     <input
                                         type="text"
-                                        placeholder="태그 선택"
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 border-none rounded-l-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all cursor-pointer"
-                                        readOnly
+                                        placeholder="태그를 입력 후 Enter 또는 클릭하여 추가"
+                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 border-none rounded-l-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                                        value={tagInput}
+                                        onChange={(e) => setTagInput(e.target.value)}
+                                        onKeyUp={handleTagKeyUp}
                                         onClick={() => setShowTagSelector(true)}
                                     />
                                     <Tag
