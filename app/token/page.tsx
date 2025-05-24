@@ -6,6 +6,7 @@ import TokenRequestModal from "@/components/bank/TokenRequestModal";
 import SubHeader from "@/components/common/SubHeader";
 import { mapTokenRequestStatus } from "@/types/Token";
 import { fetchBankAccounts } from "@/api/bankAccountApi";
+import { toast } from "react-toastify";
 import { AccountInfo } from "@/types/Account";
 
 
@@ -77,7 +78,7 @@ export default function BankTokenRequests() {
 
   const handleAddToken = () => {
     if (tokenRequests.length > 0) {
-      alert("이미 생성된 토큰이 존재합니다");
+      toast.error("이미 생성된 토큰이 존재합니다");
       return;
     }
 

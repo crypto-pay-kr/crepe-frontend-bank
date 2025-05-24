@@ -1,17 +1,20 @@
 "use client"
-import { useState, useRef } from "react";
-import Link from "next/link";
-import { changeBankPhone, changeBankCI } from "@/api/bankInfoApi";
+
+import React, { useState, useRef } from "react"
+import Link from "next/link"
+import { toast } from "react-toastify"
+import { changeBankPhone, changeBankCI } from "@/api/bankInfoApi"
 
 interface BankInfoSectionProps {
-  bankName?: string;
-  bankImageUrl?: string;
-  bankPhoneNumber?: string;
-  bankEmail?: string;
-  bankCode?: string;
-  onPhoneChange?: () => void;
-  onCIChange?: (newImageUrl: string) => void;
+  bankName?: string
+  bankImageUrl?: string
+  bankPhoneNumber?: string
+  bankEmail?: string
+  bankCode?: string
+  onPhoneChange?: () => void
+  onCIChange?: (newImageUrl: string) => void
 }
+
 export default function BankInfoSection({
   bankName = "",
   bankImageUrl = "",
@@ -21,86 +24,77 @@ export default function BankInfoSection({
   onPhoneChange = () => {},
   onCIChange = () => {},
 }: BankInfoSectionProps) {
-  const [phoneInput, setPhoneInput] = useState(bankPhoneNumber);
-  const [isEditing, setIsEditing] = useState(false);
+  const [phoneInput, setPhoneInput] = useState(bankPhoneNumber)
+  const [isEditing, setIsEditing] = useState(false)
 
-  
   // CI 이미지 관련 state
-  const [isEditingCI, setIsEditingCI] = useState(false);
-  const [localBankImageUrl, setLocalBankImageUrl] = useState(bankImageUrl);
-  const [selectedCIFile, setSelectedCIFile] = useState<File | null>(null);
-  const ciInputRef = useRef<HTMLInputElement>(null);
+  const [isEditingCI, setIsEditingCI] = useState(false)
+  const [localBankImageUrl, setLocalBankImageUrl] = useState(bankImageUrl)
+  const [selectedCIFile, setSelectedCIFile] = useState<File | null>(null)
+  const ciInputRef = useRef<HTMLInputElement>(null)
 
+  // 전화번호 변경 핸들러
   const handleChangePhoneClick = async () => {
-    // 기존 번호와 동일한지 체크
     if (phoneInput === bankPhoneNumber) {
-      alert("기존 번호와 동일합니다. 새로운 번호를 입력해주세요.");
-      return;
+      toast.info("기존 번호와 동일합니다. 새로운 번호를 입력해주세요.")
+      return
     }
     try {
-      const result = await changeBankPhone(phoneInput);
-      console.log(result);
-      alert("연결 번호가 변경되었습니다.");
-      setIsEditing(false);
-      onPhoneChange();
-    } catch (error) {
-      console.error(error);
-      alert("번호 변경 실패");
+      await changeBankPhone(phoneInput!)
+      toast.success("연결 번호가 변경되었습니다.")
+      setIsEditing(false)
+      onPhoneChange()
+    } catch (err: any) {
+      console.error("번호 변경 실패:", err)
+      toast.error(err.message || "번호 변경 실패")
     }
-  };
+  }
 
+  // CI 이미지를 수정 모드로 전환
   const handleCIButtonClick = () => {
-    setIsEditingCI(true);
-  };
+    setIsEditingCI(true)
+  }
 
-  // 파일 선택 시 미리보기 처리
+  // 파일 선택 후 미리보기
   const handleCIImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSelectedCIFile(file);
-    const previewUrl = URL.createObjectURL(file);
-    setLocalBankImageUrl(previewUrl);
-  };
+    const file = e.target.files?.[0]
+    if (!file) return
+    setSelectedCIFile(file)
+    const previewUrl = URL.createObjectURL(file)
+    setLocalBankImageUrl(previewUrl)
+  }
 
-  // 선택한 파일로 API 호출 (수정 요청)
+  // CI 이미지 변경 확정
   const handleConfirmCIChange = async () => {
-    if (!selectedCIFile) return;
+    if (!selectedCIFile) return
     try {
-      const result = await changeBankCI(selectedCIFile);
-      alert(result);
-      onCIChange(localBankImageUrl);
-      setIsEditingCI(false);
-      setSelectedCIFile(null);
-    } catch (error) {
-      console.error(error);
-      alert("CI 이미지 변경 실패");
+      const result = await changeBankCI(selectedCIFile)
+      const msg =
+        typeof result === "string"
+          ? result
+          : "CI 이미지가 변경되었습니다."
+      toast.success(msg)
+      onCIChange(localBankImageUrl)
+      setIsEditingCI(false)
+      setSelectedCIFile(null)
+    } catch (err: any) {
+      console.error("CI 이미지 변경 실패:", err)
+      toast.error(err.message || "CI 이미지 변경 실패")
     }
-  };
+  }
 
   return (
     <>
-      {/* Bank Info Section */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
+      {/* CI 이미지 섹션 */}
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-md font-medium text-gray-700">은행 CI 이미지 정보</h2>
+          <h2 className="text-md font-medium text-gray-700">
+            은행 CI 이미지 정보
+          </h2>
           <button
-            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md flex items-center transition-colors"
+            className="text-xs px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
             onClick={handleCIButtonClick}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-1"
-            >
-              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-            </svg>
             수정하기
           </button>
         </div>
@@ -114,12 +108,11 @@ export default function BankInfoSection({
           ) : (
             <div className="w-32 h-32 bg-white rounded-md flex items-center justify-center">
               <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-yellow-600">
-                {bankName}
+                {bankName.charAt(0) || ""}
               </div>
             </div>
           )}
           {isEditingCI && (
-            // 하단 우측에 작은 버튼들이 표시되어 미리보기 이미지는 그대로 보임
             <div className="absolute bottom-2 right-2 flex gap-2">
               <button
                 onClick={() => ciInputRef.current?.click()}
@@ -138,7 +131,6 @@ export default function BankInfoSection({
             </div>
           )}
         </div>
-        {/* 파일 인풋은 화면에 보이지 않음 */}
         <input
           type="file"
           accept="image/*"
@@ -148,9 +140,11 @@ export default function BankInfoSection({
         />
       </div>
 
-      {/* Contact Info Section */}
+      {/* 연락처, 이메일, 코드 섹션 */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="text-md font-medium text-gray-700 mb-4">은행 정보</h2>
+        <h2 className="text-md font-medium text-gray-700 mb-4">
+          은행 정보
+        </h2>
         <div className="mb-4">
           <div className="text-xs text-gray-500 mb-1">대표 전화</div>
           <div className="flex">
@@ -160,69 +154,58 @@ export default function BankInfoSection({
               readOnly={!isEditing}
               onFocus={() => setIsEditing(true)}
               onChange={(e) => setPhoneInput(e.target.value)}
-              className="w-10/12 p-2 border text-gray-500 border-gray-300 rounded-lg"
+              className="w-10/12 p-2 border text-gray-700 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
             <button
               onClick={handleChangePhoneClick}
-              className="w-1/6 ml-1 px-3 py-1 bg-pink-500 text-white rounded-md"
+              className="w-1/6 ml-1 px-3 py-1 bg-pink-500 text-white rounded-md hover:bg-pink-600 transition-colors"
             >
               변경
             </button>
           </div>
         </div>
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
             <div className="text-xs text-gray-500 mb-1">은행 이메일</div>
-            <div className="flex">
-              <input
-                type="text"
-                value={bankEmail}
-                readOnly
-                className="w-full p-2 border text-gray-500 border-gray-300 rounded-lg"
-              />
-            </div>
+            <input
+              type="text"
+              value={bankEmail}
+              readOnly
+              className="w-full p-2 border text-gray-500 border-gray-300 rounded-lg"
+            />
           </div>
           <div>
             <div className="text-xs text-gray-500 mb-1">은행 코드</div>
-            <div className="flex">
-              <input
-                type="text"
-                value={bankCode}
-                readOnly
-                className="w-full p-2 border text-gray-500 border-gray-300 rounded-lg"
-              />
-            </div>
+            <input
+              type="text"
+              value={bankCode}
+              readOnly
+              className="w-full p-2 border text-gray-500 border-gray-300 rounded-lg"
+            />
           </div>
         </div>
-
-        <div className="space-y-3">
-          <Link
-            href={{
-              pathname: "/account",
-            }}
-            className="text-xs text-gray-500"
-          >
-            <button className="w-full p-3 text-left border border-gray-300 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors mb-1">
-              <span>은행 계좌 관리</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-5 w-5 text-gray-400"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
-          </Link>
-        </div>
+        <Link
+          href="/account"
+          className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+        >
+          <button className="w-full p-3 text-left border border-gray-300 rounded-lg flex items-center justify-between hover:bg-gray-50 transition-colors">
+            <span>은행 계좌 관리</span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-5 w-5 text-gray-400"
+            >
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+        </Link>
       </div>
     </>
-  );
+  )
 }

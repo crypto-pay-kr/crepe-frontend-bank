@@ -5,6 +5,7 @@ export const dynamic = "force-dynamic";
 import React, { useRef, useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "react-toastify";
 import { ArrowLeft } from "lucide-react";
 import Step1 from "@/components/product/add/Step1";
 import Step2 from "@/components/product/add/Step2";
@@ -147,17 +148,17 @@ function AddProductContent() {
     setFormData((prev) => ({ ...prev!, [name]: value }));
   };
 
-const handleAddTag = (tag: string) => {
-  const newTag = tag.trim();
-  if (newTag === "") return;
-  if (!formData.tags.includes(newTag)) {
-    setFormData((prev) => ({
-      ...prev!,
-      tags: [...prev!.tags, newTag],
-    }));
-  }
-  setShowTagSelector(false);
-};
+  const handleAddTag = (tag: string) => {
+    const newTag = tag.trim();
+    if (newTag === "") return;
+    if (!formData.tags.includes(newTag)) {
+      setFormData((prev) => ({
+        ...prev!,
+        tags: [...prev!.tags, newTag],
+      }));
+    }
+    setShowTagSelector(false);
+  };
 
   const handleRemoveTag = (idx: number) => {
     setFormData((prev) => {
@@ -219,7 +220,7 @@ const handleAddTag = (tag: string) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productImageFile) {
-      alert("CI 이미지를 선택해주세요.");
+      toast.error("CI 이미지를 선택해주세요.");
       return;
     }
     const req: RegisterProductRequest = {
@@ -266,11 +267,11 @@ const handleAddTag = (tag: string) => {
 
     try {
       await registerProduct(req, productImageFile, guideFile || undefined);
-      alert(isModify ? "수정 완료" : "등록 완료");
+      toast.success(isModify ? "수정 완료" : "등록 완료");
       router.push("/products");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("실패했습니다.");
+      toast.error(err.message || "등록에 실패했습니다.");
     }
   };
 
@@ -294,25 +295,22 @@ const handleAddTag = (tag: string) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    currentStep === 1
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 1
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
                   1
                 </div>
                 <div
-                  className={`h-1 w-20 mx-2 ${
-                    currentStep === 2 ? "bg-pink-500" : "bg-gray-200"
-                  }`}
+                  className={`h-1 w-20 mx-2 ${currentStep === 2 ? "bg-pink-500" : "bg-gray-200"
+                    }`}
                 />
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    currentStep === 2
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 2
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200 text-gray-600"
-                  }`}
+                    }`}
                 >
                   2
                 </div>
@@ -363,17 +361,17 @@ const handleAddTag = (tag: string) => {
 
 // 로딩 상태 fallback 컴포넌트
 function LoadingFallback() {
-    return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-gray-500">로딩 중...</div>
-      </div>
-    );
-  }
-  
-  export default function AddProductPage() {
-    return (
-      <Suspense fallback={<LoadingFallback />}>
-        <AddProductContent />
-      </Suspense>
-    );
-  }
+  return (
+    <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
+      <div className="text-gray-500">로딩 중...</div>
+    </div>
+  );
+}
+
+export default function AddProductPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AddProductContent />
+    </Suspense>
+  );
+}
