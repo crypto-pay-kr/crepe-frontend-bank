@@ -86,8 +86,8 @@ export default function BankInfoSection({
   return (
     <>
       {/* CI 이미지 섹션 */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between mb-4 pb-2">
           <h2 className="text-md font-medium text-gray-700">
             은행 CI 이미지 정보
           </h2>
