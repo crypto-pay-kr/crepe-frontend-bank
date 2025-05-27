@@ -4,7 +4,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useBankContext } from "@/context/BankContext";
 import { Sidebar } from '@/components/common/Sidebar';
 import { useAuthContext } from '@/context/AuthContext';
-import { useEffect } from 'react';
 
 export default function ClientLayout({
   children,

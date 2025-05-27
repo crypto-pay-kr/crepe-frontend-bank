@@ -21,8 +21,8 @@ export const Sidebar: React.FC<{ bankName: string }> = ({ bankName }) => {
   const handleLogout = () => {
 
     // 로컬 스토리지에서 토큰 제거 (필요 시)
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
 
     console.log("로그아웃 완료: 토큰 제거됨");
 
