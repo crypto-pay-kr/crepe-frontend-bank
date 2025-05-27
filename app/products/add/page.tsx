@@ -170,12 +170,9 @@ function AddProductContent() {
 
   const handleAddInterestRate = (cat: InterestRateCategory) => {
     setFormData((prev) => {
-      const idx = prev!.additionalInterestRates.findIndex((r) => r.type === cat.type);
-      const rates =
-        idx >= 0
-          ? prev!.additionalInterestRates.map((r, i) => (i === idx ? cat : r))
-          : [...prev!.additionalInterestRates, cat];
-      return { ...prev!, additionalInterestRates: rates };
+      const idx = prev!.additionalInterestRates.findIndex((r) => r.id === cat.id);
+      if (idx >= 0) return { ...prev! };
+      return { ...prev!, additionalInterestRates: [...prev!.additionalInterestRates, cat] };
     });
     setShowCategorySelector(null);
   };
@@ -203,7 +200,6 @@ function AddProductContent() {
       };
     });
   };
-
 
   const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) setProductImageFile(e.target.files[0]);
