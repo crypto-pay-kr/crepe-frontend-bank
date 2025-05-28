@@ -64,29 +64,15 @@ export default function TokenRequestModal({
     };
   });
 
-  // isAddMode일 때: portfolio 변경 시 totalValue 계산
   useEffect(() => {
-    if (isAddMode) {
-      const total = formData.portfolio.reduce((acc: number, item: PortfolioItem) => {
-        const price = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
-        const amount = parseFloat(item.amount || "0");
-        return acc + price * amount;
-      }, 0);
-      setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
-    }
-  }, [formData.portfolio, tickerData, isAddMode]);
-
-  // isAddMode가 아닐 때: requestData 기반으로 totalValue 계산
-  useEffect(() => {
-    if (!isAddMode && requestData) {
-      const total = formData.portfolio.reduce((acc: number, item: any) => {
-        const price = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
-        const amount = parseFloat(item.newAmount || item.currentAmount || "0"); // newAmount 우선
-        return acc + price * amount;
-      }, 0);
-      setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
-    }
-  }, [formData.portfolio, tickerData, isAddMode, requestData]);
+    const total = formData.portfolio.reduce((acc: number, item: any) => {
+      const price = tickerData[`KRW-${item.currency}`]?.trade_price || 0;
+      const amount = parseFloat(item.newAmount || item.amount || item.currentAmount || "0"); // 모든 경우 처리
+      return acc + price * amount;
+    }, 0);
+  
+    setFormData((prev) => ({ ...prev, totalValue: total.toString() }));
+  }, [formData.portfolio, tickerData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -117,7 +103,7 @@ export default function TokenRequestModal({
     if (selectedToken && tokenAmount) {
       const newCoin = {
         currency: selectedToken,
-        amount: tokenAmount,
+        newAmount: tokenAmount, // newAmount로 추가
       };
       setFormData((prev) => ({
         ...prev,
@@ -126,6 +112,8 @@ export default function TokenRequestModal({
       setShowTokenInput(false);
       setSelectedToken("");
       setTokenAmount("");
+    } else {
+      toast.error("토큰과 수량을 입력해주세요.");
     }
   };
 
@@ -144,10 +132,15 @@ export default function TokenRequestModal({
           portfolioCoins: formData.portfolio.map((item: any) => ({
             coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
             currency: item.currency,
-            amount: parseFloat(item.newAmount) || 0,
+            amount: parseFloat(item.newAmount || item.currentAmount || "0"),
             currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
           })),
         };
+
+
+        // 새로운 코인도 포함되도록 확인
+        console.log("재요청 DTO:", requestDTO);
+
         const result = await recreateBankToken(requestDTO);
         console.log("재요청 성공:", result);
         onSubmit(requestDTO);
@@ -324,10 +317,10 @@ export default function TokenRequestModal({
                   {data.trade_price.toLocaleString()} KRW
                   <span
                     className={`ml-2 font-medium ${data.change === "RISE"
-                        ? "text-red-500"
-                        : data.change === "FALL"
-                          ? "text-blue-500"
-                          : ""
+                      ? "text-red-500"
+                      : data.change === "FALL"
+                        ? "text-blue-500"
+                        : ""
                       }`}
                   >
                     ({data.signed_change_rate.toFixed(2)}%)
