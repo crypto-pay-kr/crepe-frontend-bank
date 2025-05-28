@@ -51,3 +51,25 @@ export function mapTokenRequestStatus(status: string): { label: string; bgClass:
       return { label: status, bgClass: "bg-gray-100", textClass: "text-gray-700" };
   }
 }
+
+export interface TokenInfoResponse {
+    Currency: string;
+    totalSupply: number;
+    tokenBalance: number;
+    portfolios: PortfolioIt[];
+}
+
+export interface PortfolioIt {
+    currency: string;
+    amount: number;
+    nonAvailableAmount: number;
+}
+
+export interface PortfolioDetail {
+    coinName: string;
+    coinCurrency: string;
+    prevAmount: string;
+    prevPrice: string;
+    updateAmount: string;
+    updatePrice: string;
+}
