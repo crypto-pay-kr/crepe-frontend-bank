@@ -95,14 +95,6 @@ export default function BankBalanceSection() {
         >
           잔여 {formatNumber(balanceData.coins.xrp.available)}XRP
         </div>
-        <div
-          style={{
-            background: `linear-gradient(to right, var(--rose-500), var(--rose-400))`,
-            width: `${100 - balanceData.coins.xrp.availableRatio}%`
-          }}
-          className="text-center py-1 flex items-center justify-center text-white font-medium text-xs transition-all duration-300 hover:brightness-105"
-        >
-        </div>
       </div>
 
       {/* USDT 잔액 */}
@@ -155,67 +147,8 @@ export default function BankBalanceSection() {
         </div>
       </div>
 
-      {/* 전체 분포도 (100% 합계) */}
-      <div className="flex h-8 rounded-md overflow-hidden shadow-sm mb-4">
-        <div
-          style={{
-            background: `linear-gradient(to right, var(--rose-300), var(--rose-400))`,
-            width: `${xrpRatio}%`
-          }}
-          className="text-center py-1 flex items-center justify-center text-white font-medium text-xs transition-all duration-300 hover:brightness-105"
-        >
-          XRP {xrpRatio}%
-        </div>
-        <div
-          style={{
-            background: `linear-gradient(to right, var(--blue-300), var(--blue-400))`,
-            width: `${usdtRatio}%`
-          }}
-          className="text-center py-1 flex items-center justify-center text-white font-medium text-xs transition-all duration-300 hover:brightness-105"
-        >
-          USDT {usdtRatio}%
-        </div>
-        <div
-          style={{
-            background: `linear-gradient(to right, var(--green-300), var(--green-400))`,
-            width: `${ethRatio}%`
-          }}
-          className="text-center py-1 flex items-center justify-center text-white font-medium text-xs transition-all duration-300 hover:brightness-105"
-        >
-          ETH {ethRatio}%
-        </div>
-      </div>
-      
-      {/* 차트 */}
-      <div className="w-full h-32 relative mt-4">
-        <canvas ref={canvasRef} className="w-full h-full rounded-md" />
-
-        {/* 호버 정보 툴팁 */}
-        {hoveredCandle !== null && (
-          <div
-            className="absolute bg-black/80 text-white text-xs p-2 rounded pointer-events-none z-10 backdrop-blur-sm border border-gray-700"
-            style={{
-              left: `${mousePosition.x + 10}px`,
-              top: `${mousePosition.y - 60}px`,
-              transform: mousePosition.x > 200 ? "translateX(-100%)" : "translateX(0)",
-            }}
-          >
-            <div className="font-medium">{balanceData.combinedChartData[hoveredCandle].date}</div>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-1">
-              <div className="text-gray-400">Open:</div>
-              <div>{balanceData.combinedChartData[hoveredCandle].open.toLocaleString()}</div>
-              <div className="text-gray-400">Close:</div>
-              <div className={balanceData.combinedChartData[hoveredCandle].isUp ? "text-green-400" : "text-rose-400"}>
-                {balanceData.combinedChartData[hoveredCandle].close.toLocaleString()}
-              </div>
-              <div className="text-gray-400">High:</div>
-              <div className="text-green-400">{balanceData.combinedChartData[hoveredCandle].high.toLocaleString()}</div>
-              <div className="text-gray-400">Low:</div>
-              <div className="text-rose-400">{balanceData.combinedChartData[hoveredCandle].low.toLocaleString()}</div>
-            </div>
-          </div>
-        )}
-      </div>
+    
+    
     </div>
   );
 }
