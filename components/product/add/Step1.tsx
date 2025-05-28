@@ -173,11 +173,10 @@ export default function Step1({
                             required
                         />
                     </div>
-
-                    {/* 기본 금리 */}
+                    {/* 기본 금리 / 할인율 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
-                            기본 금리 (%)
+                            {formData.productType === "상품권" ? "할인율 (%)" : "기본 금리 (%)"}
                         </label>
                         <input
                             type="number"
@@ -455,11 +454,23 @@ export default function Step1({
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setShowCategorySelector("DEPOSIT")}
-                                className="bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors text-sm"
+                                // "예금", "상품권"이 아니어야 클릭
+                                onClick={() =>
+                                    formData.productType !== "예금" &&
+                                    formData.productType !== "상품권" &&
+                                    setShowCategorySelector("DEPOSIT")
+                                }
+                                // "예금" 또는 "상품권"이면 disabled
+                                disabled={formData.productType === "예금" || formData.productType === "상품권"}
+                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "예금" || formData.productType === "상품권"
+                                        ? "opacity-50 cursor-not-allowed"
+                                        : "hover:bg-gray-50"
+                                    }`}
                             >
                                 <Plus size={16} className="text-pink-500" />
-                                <span className="text-gray-700">자유납입 우대금리</span>
+                                <span className="text-gray-700">
+                                    자유납입 우대금리
+                                </span>
                             </button>
                         </div>
 
