@@ -111,3 +111,30 @@ export async function changeBankAccount(
     throw new Error(errorData.message || "Failed to update bank account")
   }
 }
+
+
+export const getRemainingCoinBalance = async (): Promise<RemainingCoinBalanceResponse[]> => {
+  const token = sessionStorage.getItem("accessToken");
+  const response = await fetch(`${API_BASE_URL}/bank/coin/remaining`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('잔여 코인 조회 실패');
+  }
+
+  return response.json();
+};
+
+// 새로 추가할 타입 정의 (원하는 파일에 선언)
+export interface RemainingCoinBalanceResponse {
+  coinName: string;
+  currency: string;
+  publishedBalance: number;
+  accountBalance: number;
+  remainingBalance: number;
+}
