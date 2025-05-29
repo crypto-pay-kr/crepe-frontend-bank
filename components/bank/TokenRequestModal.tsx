@@ -83,13 +83,15 @@ export default function TokenRequestModal({
   };
 
   // 새로 입력할 newAmount 변경 핸들러
-  const handleNewAmountChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const updated = [...prev.portfolio];
-      updated[index] = { ...updated[index], newAmount: value };
-      return { ...prev, portfolio: updated };
-    });
-  };
+const handleNewAmountChange = (index: number, value: string) => {
+  console.log("handleNewAmountChange called. index:", index, "newAmount:", value); // <-- 로그 추가
+  setFormData((prev) => {
+    const updated = [...prev.portfolio];
+    updated[index] = { ...updated[index], newAmount: value };
+    console.log("Updated portfolio:", updated); // <-- 로그 추가
+    return { ...prev, portfolio: updated };
+  });
+};
 
   const handleRemoveCurrency = (index: number) => {
     setFormData((prev) => {
@@ -98,17 +100,21 @@ export default function TokenRequestModal({
       return { ...prev, portfolio: updatedPortfolio };
     });
   };
-
   const handleAddTokenToPortfolio = () => {
+    console.log("handleAddTokenToPortfolio called. selectedToken:", selectedToken, "tokenAmount:", tokenAmount); // <-- 로그 추가
     if (selectedToken && tokenAmount) {
       const newCoin = {
         currency: selectedToken,
         newAmount: tokenAmount, // newAmount로 추가
       };
-      setFormData((prev) => ({
-        ...prev,
-        portfolio: [...prev.portfolio, newCoin],
-      }));
+      setFormData((prev) => {
+        const updatedPortfolio = [...prev.portfolio, newCoin];
+        console.log("After adding newCoin:", updatedPortfolio); // <-- 로그 추가
+        return {
+          ...prev,
+          portfolio: updatedPortfolio,
+        };
+      });
       setShowTokenInput(false);
       setSelectedToken("");
       setTokenAmount("");
@@ -151,12 +157,14 @@ export default function TokenRequestModal({
           tokenCurrency: formData.currency,
           changeReason: formData.changeReason,
           portfolioCoins: formData.portfolio.map((item: PortfolioItem): PortfolioCoin => ({
-            coinName: coinMapping[item.currency] || item.currency, // coinMapping 사용
+            coinName: coinMapping[item.currency] || item.currency,
             currency: item.currency,
-            amount: parseFloat(item.amount ?? "") || 0,
+            amount: parseFloat(item.newAmount ?? item.amount ?? "") || 0, // newAmount 우선 사용
             currentPrice: tickerData[`KRW-${item.currency}`]?.trade_price || 0,
           })),
         };
+
+        console.log("토큰 생성 DTO:", requestDTO);
         await createBankToken(requestDTO);
         onSubmit(requestDTO);
       }

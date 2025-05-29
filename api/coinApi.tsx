@@ -1,5 +1,5 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-const COIN_PRICE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+// 코인 시세 API 호출을 위한 URL
+const COIN_PRICE_URL = process.env.NEXT_COIN_PRICE_URL;
 
 
 
