@@ -193,7 +193,11 @@ export default function Step1({
                     {/* 최대 월 납입액 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
-                            {formData.productType === "상품권" ? "지정가" : "최대 월 납입액"}
+                            {formData.productType === "상품권"
+                                ? "지정가"
+                                : formData.productType === "예금"
+                                    ? "최대 납입액"
+                                    : "최대 월 납입액"}
                         </label>
                         <input
                             type="number"
