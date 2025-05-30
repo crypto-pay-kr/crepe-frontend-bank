@@ -193,7 +193,7 @@ export default function Step1({
                     {/* 최대 월 납입액 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
-                            최대 월 납입액
+                            {formData.productType === "상품권" ? "지정가" : "최대 월 납입액"}
                         </label>
                         <input
                             type="number"
@@ -439,7 +439,9 @@ export default function Step1({
                             <button
                                 type="button"
                                 onClick={() => setShowCategorySelector("AGE")}
-                                className="bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors text-sm"
+                                disabled={formData.productType === "상품권"}
+                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                    }`}
                             >
                                 <Plus size={16} className="text-pink-500" />
                                 <span className="text-gray-700">연령 우대금리</span>
@@ -447,24 +449,26 @@ export default function Step1({
                             <button
                                 type="button"
                                 onClick={() => setShowCategorySelector("AMOUNT")}
-                                className="bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors text-sm"
+                                disabled={formData.productType === "상품권"}
+                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                    }`}
                             >
                                 <Plus size={16} className="text-pink-500" />
                                 <span className="text-gray-700">금액 우대금리</span>
                             </button>
                             <button
                                 type="button"
-                                // "예금", "상품권"이 아니어야 클릭
                                 onClick={() =>
                                     formData.productType !== "예금" &&
                                     formData.productType !== "상품권" &&
                                     setShowCategorySelector("DEPOSIT")
                                 }
-                                // "예금" 또는 "상품권"이면 disabled
-                                disabled={formData.productType === "예금" || formData.productType === "상품권"}
+                                disabled={
+                                    formData.productType === "예금" || formData.productType === "상품권"
+                                }
                                 className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "예금" || formData.productType === "상품권"
-                                        ? "opacity-50 cursor-not-allowed"
-                                        : "hover:bg-gray-50"
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "hover:bg-gray-50"
                                     }`}
                             >
                                 <Plus size={16} className="text-pink-500" />
