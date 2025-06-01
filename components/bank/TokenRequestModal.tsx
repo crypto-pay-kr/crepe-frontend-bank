@@ -178,9 +178,10 @@ const handleNewAmountChange = (index: number, value: string) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-        <div className="bg-white rounded-lg w-full max-w-lg shadow-xl">
-          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-pink-500 to-rose-400 rounded-t-lg">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40 p-4">
+        <div className="bg-white rounded-lg w-full max-w-lg shadow-xl max-h-[90vh] flex flex-col">
+          {/* 고정 헤더 */}
+          <div className="flex justify-between items-center p-4 bg-gradient-to-r from-pink-500 to-rose-400 rounded-t-lg flex-shrink-0">
             <h2 className="text-lg font-medium text-white">
               {isAddMode ? "토큰 추가" : "토큰 상세 확인"}
             </h2>
@@ -188,7 +189,9 @@ const handleNewAmountChange = (index: number, value: string) => {
               <X size={24} />
             </button>
           </div>
-          <div className="p-6">
+          
+          {/* 스크롤 가능한 내용 영역 */}
+          <div className="flex-1 overflow-y-auto p-6">
             {/* 토큰 이름 / 심볼 */}
             <div className="mb-6">
               <label className="block text-sm text-gray-700 font-medium mb-2">토큰 이름</label>
@@ -348,6 +351,10 @@ const handleNewAmountChange = (index: number, value: string) => {
                 placeholder="토큰 가치"
               />
             </div>
+          </div>
+
+          {/* 고정 버튼 영역 */}
+          <div className="p-6 pt-0 flex-shrink-0">
             <div className="flex gap-3">
               <button
                 onClick={handleSubmit}

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
 import { BankLogin, BankLoginRequest } from "@/api/authApi";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
@@ -11,9 +12,9 @@ interface AuthContextValue {
   login: (email: string, password: string, captchaKey: string, captchaValue: string) => Promise<void>;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
-  reissueToken: () => Promise<boolean>; // 추가
-  authenticatedFetch: (url: string, options?: RequestInit) => Promise<Response>; // 추가
-  manualReconnectSSE: () => void; // 디버깅용 추가
+  reissueToken: () => Promise<boolean>;
+  authenticatedFetch: (url: string, options?: RequestInit) => Promise<Response>;
+  manualReconnectSSE: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -25,15 +26,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef<number>(0);
   const maxReconnectAttempts = 5;
+  const isReissuingRef = useRef<boolean>(false); // 토큰 재발행 중복 방지
 
-  // 토큰 재발행 함수
+  // 토큰 재발행 함수 - 개선된 버전
   const reissueToken = async (): Promise<boolean> => {
+    // 이미 재발행 중이면 중복 실행 방지
+    if (isReissuingRef.current) {
+      console.log('🔄 Bank 토큰 재발행이 이미 진행 중입니다.');
+      return false;
+    }
+
     try {
+      isReissuingRef.current = true;
+      
       const refreshToken = getRefreshToken();
+      const userEmail = getUserEmail(); // 추가: 이메일도 가져오기
       
       if (!refreshToken) {
         console.log('❌ Bank 리프레시 토큰이 없습니다.');
-        logout();
+        await handleTokenExpired();
+        return false;
+      }
+
+      if (!userEmail) {
+        console.log('❌ Bank 사용자 이메일이 없습니다.');
+        await handleTokenExpired();
         return false;
       }
 
@@ -46,23 +63,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         },
         body: JSON.stringify({
           refreshToken,
-          userRole: 'BANK' // 백엔드에서 userRole을 요구할 수 있음
+          userEmail,    // 백엔드에서 요구하는 필수 필드
+          userRole: 'BANK' // 백엔드에서 요구하는 필수 필드
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Bank 토큰 재발행 실패: ${response.status}`);
-      }
-
       const result = await response.json();
-      
-      if (result.success && result.data) {
+
+      if (response.ok && result.success && result.data) {
         console.log('✅ Bank 토큰 재발행 성공');
         
         // 새 토큰들 저장
         if (typeof window !== "undefined") {
           sessionStorage.setItem('accessToken', result.data.accessToken);
           sessionStorage.setItem('refreshToken', result.data.refreshToken);
+          sessionStorage.setItem('userEmail', result.data.userEmail);
         }
         
         // SSE 연결도 새 토큰으로 재설정
@@ -72,87 +87,139 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         return true;
       } else {
-        throw new Error(result.message || 'Bank 토큰 재발행 실패');
+        // 토큰 재발행 실패 처리
+        console.error('❌ Bank 토큰 재발행 실패:', result.message);
+        
+        // 401, 403 등은 리프레시 토큰 만료로 간주
+        if (response.status === 401 || response.status === 403 || 
+            result.message?.includes('expired') || 
+            result.message?.includes('invalid')) {
+          console.log('🔄 Bank 리프레시 토큰 만료, 로그아웃 처리');
+          await handleTokenExpired();
+        }
+        
+        return false;
       }
     } catch (error) {
       console.error('❌ Bank 토큰 재발행 오류:', error);
       
-      // 401 오류면 리프레시 토큰도 만료된 것
-      if (error instanceof Error && error.message.includes('401')) {
-        console.log('🔄 Bank 리프레시 토큰도 만료됨, 로그아웃 처리');
-        logout();
+      // 네트워크 오류가 아닌 경우 토큰 만료로 간주
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.log('🌐 네트워크 오류 발생, 재시도 가능');
+      } else {
+        console.log('🔄 토큰 관련 오류, 로그아웃 처리');
+        await handleTokenExpired();
       }
       
       return false;
+    } finally {
+      isReissuingRef.current = false;
     }
   };
 
-  // API 요청을 위한 fetch 래퍼 함수 (자동 토큰 재발행)
-  // AuthContext의 authenticatedFetch 함수 개선 버전
-
-// API 요청을 위한 fetch 래퍼 함수 (무한 루프 방지)
-const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  const accessToken = getAccessToken();
-  
-  // 재발행 시도 플래그 (무한 루프 방지)
-  const isRetryAttempt = options.headers && 
-    (options.headers as any)['X-Token-Retry'] === 'true';
-  
-  // 헤더에 토큰 추가
-  const headers = {
-    ...options.headers,
-    'Authorization': `Bearer ${accessToken}`,
-    'Content-Type': 'application/json',
+  // 토큰 만료 처리 함수
+  const handleTokenExpired = async () => {
+    console.log('🚨 Bank 토큰 만료 처리 시작');
+    
+    // SSE 연결 해제
+    if (eventSourceRef.current) {
+      eventSourceRef.current.close();
+      eventSourceRef.current = null;
+    }
+    
+    // 모든 토큰 및 사용자 정보 제거
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('userEmail');
+    }
+    
+    setIsAuthenticated(false);
+    
+    // 사용자에게 알림
+    toast.error('세션이 만료되었습니다. 다시 로그인해주세요.', {
+      toastId: 'token-expired', // 중복 방지
+      autoClose: 3000,
+    });
+    
+    // 로그인 페이지로 리다이렉트
+    setTimeout(() => {
+      window.location.href = '/login';
+    }, 100);
   };
 
-  // 원본 fetch를 window에 바인드하여 사용 (중요!)
-  const originalFetch = window.fetch.bind(window);
-
-  let response = await originalFetch(url, {
-    ...options,
-    headers,
-  });
-
-  // 401 오류 시 토큰 재발행 시도 (단, 재시도가 아닌 경우에만)
-  if (response.status === 401 && !isRetryAttempt) {
-    console.log('🔄 Bank 401 오류 발생, 토큰 재발행 시도');
+  // API 요청을 위한 fetch 래퍼 함수 (개선된 버전)
+  const authenticatedFetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+    const accessToken = getAccessToken();
     
-    const reissueSuccess = await reissueToken();
+    if (!accessToken) {
+      console.log('❌ Bank 액세스 토큰이 없습니다.');
+      await handleTokenExpired();
+      throw new Error('인증 토큰이 없습니다.');
+    }
     
-    if (reissueSuccess) {
-      // 재발행 성공 시 원래 요청 재시도
-      const newAccessToken = getAccessToken();
-      const retryHeaders = {
-        ...options.headers,
-        'Authorization': `Bearer ${newAccessToken}`,
-        'Content-Type': 'application/json',
-        'X-Token-Retry': 'true', // 재시도 플래그
-      };
+    // 재발행 시도 플래그 (무한 루프 방지)
+    const isRetryAttempt = options.headers && 
+      (options.headers as any)['X-Token-Retry'] === 'true';
+    
+    // 헤더에 토큰 추가
+    const headers = {
+      ...options.headers,
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    const originalFetch = window.fetch.bind(window);
+
+    let response = await originalFetch(url, {
+      ...options,
+      headers,
+    });
+
+    // 401 오류 시 토큰 재발행 시도 (단, 재시도가 아닌 경우에만)
+    if (response.status === 401 && !isRetryAttempt) {
+      console.log('🔄 Bank 401 오류 발생, 토큰 재발행 시도');
       
-      console.log('🔄 Bank 토큰 재발행 성공, 요청 재시도');
-      response = await originalFetch(url, {
-        ...options,
-        headers: retryHeaders,
-      });
+      const reissueSuccess = await reissueToken();
       
-      if (response.status === 401) {
-        console.log('❌ Bank 재시도 후에도 401 오류, 로그아웃 처리');
-        logout();
-      } else {
-        console.log('✅ Bank 토큰 재발행 후 요청 성공');
+      if (reissueSuccess) {
+        // 재발행 성공 시 원래 요청 재시도
+        const newAccessToken = getAccessToken();
+        if (newAccessToken) {
+          const retryHeaders = {
+            ...options.headers,
+            'Authorization': `Bearer ${newAccessToken}`,
+            'Content-Type': 'application/json',
+            'X-Token-Retry': 'true', // 재시도 플래그
+          };
+          
+          console.log('🔄 Bank 토큰 재발행 성공, 요청 재시도');
+          response = await originalFetch(url, {
+            ...options,
+            headers: retryHeaders,
+          });
+          
+          if (response.status === 401) {
+            console.log('❌ Bank 재시도 후에도 401 오류, 토큰 만료 처리');
+            await handleTokenExpired();
+          } else {
+            console.log('✅ Bank 토큰 재발행 후 요청 성공');
+          }
+        } else {
+          console.log('❌ Bank 재발행 후 토큰 없음, 만료 처리');
+          await handleTokenExpired();
+        }
       }
-    } else {
-      console.log('❌ Bank 토큰 재발행 실패');
+      // reissueSuccess가 false인 경우 이미 handleTokenExpired가 호출됨
+    } else if (response.status === 401 && isRetryAttempt) {
+      console.log('❌ Bank 재시도 후에도 401 오류, 토큰 만료 처리');
+      await handleTokenExpired();
     }
-  } else if (response.status === 401 && isRetryAttempt) {
-    console.log('❌ Bank 재시도 후에도 401 오류, 로그아웃');
-    logout();
-  }
 
-  return response;
-};
+    return response;
+  };
 
-  // SSE 연결 설정 - 강화된 버전
+  // SSE 연결 설정 (기존과 동일하지만 에러 처리 강화)
   const setupSSEConnection = () => {
     const accessToken = getAccessToken();
     if (!accessToken) {
@@ -174,76 +241,50 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     }
 
     try {
-      console.log('🔗 Bank SSE 연결 시도 중...', `${API_BASE_URL}/api/auth/events`);
-      console.log('🔑 Bank 토큰 (앞 50자):', accessToken.substring(0, 50) + '...');
+      console.log('🔗 Bank SSE 연결 시도 중...');
       
-      // 토큰을 쿼리 파라미터로 전달
       const sseUrl = `${API_BASE_URL}/api/auth/events?token=${encodeURIComponent(accessToken)}`;
-      console.log('📏 Bank SSE URL:', sseUrl);
-      
       let connectionStartTime = Date.now();
       const eventSource = new EventSource(sseUrl);
 
       eventSource.onopen = () => {
         const connectionTime = Date.now() - connectionStartTime;
-        console.log(`✅ Bank SSE 연결이 성공적으로 열렸습니다. (${connectionTime}ms)`);
-        console.log('📊 EventSource readyState:', eventSource.readyState);
-        reconnectAttempts.current = 0; // 성공 시 재연결 카운터 리셋
+        console.log(`✅ Bank SSE 연결 성공 (${connectionTime}ms)`);
+        reconnectAttempts.current = 0;
       };
 
-      // 연결 확인 메시지
       eventSource.addEventListener('connected', (event) => {
         console.log('✅ Bank SSE 연결 확인:', event.data);
       });
 
-      // Keep-alive 메시지 처리
       eventSource.addEventListener('keepalive', (event) => {
         console.log('💓 Bank Keep-alive:', event.data);
       });
 
-      // 모든 메시지 수신 (디버깅용)
-      eventSource.onmessage = (event) => {
-        console.log('📨 Bank SSE 일반 메시지 수신:', event);
-        console.log('   - data:', event.data);
-        console.log('   - type:', event.type);
-        console.log('   - lastEventId:', event.lastEventId);
-      };
-
-      // 중복 로그인 알림 처리
+      // 중복 로그인 및 토큰 관련 이벤트 처리
       eventSource.addEventListener('duplicate-login', (event) => {
         console.log('🚨 Bank 중복 로그인 감지:', event.data);
-        alert('다른 기기에서 로그인되어 현재 세션이 종료됩니다.');
+        toast.error('다른 기기에서 로그인되어 현재 세션이 종료됩니다.');
         handleForceLogout();
       });
 
-      // 강화된 에러 처리
+      eventSource.addEventListener('TOKEN_EXPIRED', (event) => {
+        console.log('🚨 Bank 토큰 만료 이벤트 수신:', event.data);
+        handleTokenExpired();
+      });
+
+      eventSource.addEventListener('TOKEN_EXPIRING_SOON', (event) => {
+        console.log('⚠️ Bank 토큰 만료 임박:', event.data);
+        toast.warning('세션이 곧 만료됩니다. 작업을 저장해주세요.');
+      });
+
       eventSource.onerror = (error) => {
         const connectionTime = Date.now() - connectionStartTime;
         console.error('❌ Bank SSE 연결 오류:', error);
-        console.log(`⏱️ 연결 시도 시간: ${connectionTime}ms`);
-        console.log('📊 EventSource readyState:', eventSource.readyState);
-        console.log('🔗 EventSource url:', eventSource.url);
         
-        // 빠른 실패는 보통 CORS나 네트워크 문제
-        if (connectionTime < 100) {
-          console.log('⚠️ Bank 빠른 실패 - CORS 또는 네트워크 문제 가능성');
-        }
-        
-        switch(eventSource.readyState) {
-          case EventSource.CONNECTING:
-            console.log('🔄 Bank SSE 연결 시도 중...');
-            break;
-          case EventSource.OPEN:
-            console.log('✅ Bank SSE 연결이 열려있음');
-            break;
-          case EventSource.CLOSED:
-            console.log('❌ Bank SSE 연결이 닫혔습니다.');
-            
-            // SSE 연결 실패 시 토큰 재발행 시도
-            checkTokenAndReconnect();
-            break;
-          default:
-            console.log('❓ Bank SSE 알 수 없는 상태:', eventSource.readyState);
+        if (eventSource.readyState === EventSource.CLOSED) {
+          console.log('❌ Bank SSE 연결이 닫혔습니다.');
+          checkTokenAndReconnect();
         }
         
         eventSource.close();
@@ -262,23 +303,21 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     
     if (!accessToken) {
       console.log('❌ Bank 재연결 시도 중 토큰이 없음');
+      await handleTokenExpired();
       return;
     }
 
-    // SSE 연결 실패 시 토큰 재발행 시도
     console.log('🔍 Bank SSE 연결 실패, 토큰 재발행 시도');
     const reissueSuccess = await reissueToken();
     
-    if (reissueSuccess) {
-      console.log('✅ Bank 토큰 재발행 성공, SSE 재연결');
-      // setupSSEConnection은 reissueToken 내부에서 호출됨
-    } else {
+    if (!reissueSuccess) {
       // 토큰 재발행 실패 시 일반 재연결 시도
       attemptReconnection();
     }
+    // reissueSuccess가 true면 reissueToken 내부에서 setupSSEConnection 호출됨
   };
 
-  // 재연결 시도 로직 (지수적 백오프)
+  // 재연결 시도 로직
   const attemptReconnection = () => {
     if (reconnectAttempts.current < maxReconnectAttempts) {
       reconnectAttempts.current++;
@@ -294,7 +333,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     }
   };
 
-  // 수동 SSE 재연결 (디버깅용)
+  // 수동 SSE 재연결
   const manualReconnectSSE = () => {
     console.log('🔧 수동 Bank SSE 재연결 시도');
     reconnectAttempts.current = 0;
@@ -315,6 +354,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('userEmail');
     }
     setIsAuthenticated(false);
     
@@ -344,7 +384,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
             console.error('Bank 토큰 검증 실패, 토큰 재발행 시도:', error);
             const reissueSuccess = await reissueToken();
             if (!reissueSuccess) {
-              logout();
+              await handleTokenExpired();
             }
           }
         } else {
@@ -377,9 +417,8 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     try {
       console.log('🔐 Bank 로그인 시도 중...');
 
-      // 캡차 필수 검증
       if (!captchaKey || !captchaValue || captchaKey.trim() === '' || captchaValue.trim() === '') {
-        console.error('❌ Bank 캡차 정보 누락:', { captchaKey: !!captchaKey, captchaValue: !!captchaValue });
+        console.error('❌ Bank 캡차 정보 누락');
         throw new Error('보안을 위해 캡차 인증이 필요합니다.');
       }
 
@@ -398,6 +437,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
         if (typeof window !== "undefined") {
           sessionStorage.setItem('accessToken', accessToken);
           sessionStorage.setItem('refreshToken', refreshToken);
+          sessionStorage.setItem('userEmail', email); // 이메일도 저장
         }
         
         setIsAuthenticated(true);
@@ -429,6 +469,7 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('userEmail');
     }
     setIsAuthenticated(false);
     
@@ -460,9 +501,9 @@ const authenticatedFetch = async (url: string, options: RequestInit = {}): Promi
       login, 
       logout, 
       checkAuth,
-      reissueToken,        // 추가
-      authenticatedFetch,  // 추가
-      manualReconnectSSE   // 추가
+      reissueToken,
+      authenticatedFetch,
+      manualReconnectSSE
     }}>
       {children}
     </AuthContext.Provider>
@@ -481,6 +522,14 @@ export function getAccessToken(): string | null {
 export function getRefreshToken(): string | null {
   if (typeof window !== "undefined") {
     return sessionStorage.getItem("refreshToken");
+  }
+  return null;
+}
+
+// sessionStorage에서 사용자 이메일 가져오기
+export function getUserEmail(): string | null {
+  if (typeof window !== "undefined") {
+    return sessionStorage.getItem("userEmail");
   }
   return null;
 }

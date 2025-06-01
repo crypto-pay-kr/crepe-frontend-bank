@@ -6,7 +6,6 @@ import {
 import { parseJoinConditions } from "@/utils/parseJoinConditions";
 import { getAllTags } from "@/api/productApi";
 
-
 interface Step1Props {
     formData: {
         productName: string;
@@ -74,6 +73,7 @@ export default function Step1({
 
     const [tagInput, setTagInput] = useState("");
     const [availableTags, setAvailableTags] = useState<string[]>([]);
+    const [isComposing, setIsComposing] = useState(false);
 
     const isNextDisabled = !(
         formData.productName &&
@@ -86,22 +86,29 @@ export default function Step1({
     );
 
     const today = new Date().toISOString().split("T")[0];
+    
     const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && tagInput.trim() !== "") {
-            e.preventDefault()
-            e.stopPropagation()
-            handleAddTag(tagInput.trim())
-            setTagInput("")
+        if (e.key === "Enter" && tagInput.trim() !== "" && !isComposing) {
+            e.preventDefault();
+            e.stopPropagation();
+            handleAddTag(tagInput.trim());
+            setTagInput("");
         }
-    }
+    };
+
+    const handleCompositionStart = () => {
+        setIsComposing(true);
+    };
+
+    const handleCompositionEnd = () => {
+        setIsComposing(false);
+    };
 
     useEffect(() => {
         getAllTags()
             .then(setAvailableTags)
             .catch((e) => console.error("태그 조회 실패:", e));
     }, []);
-
-
 
     const parsedJoin = formData.joinConditions
         ? parseJoinConditions(formData.joinConditions)
@@ -110,6 +117,7 @@ export default function Step1({
             occupations: formData.eligibilityOccupations,
             incomeLevels: formData.eligibilityIncomeLevels,
         };
+    
     return (
         <div className="p-6">
             <h2 className="text-xl font-bold text-gray-700 mb-6 text-center">
@@ -332,8 +340,6 @@ export default function Step1({
                         </div>
                     </div>
 
-
-
                     {/* 태그 추가 */}
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -371,6 +377,8 @@ export default function Step1({
                                         value={tagInput}
                                         onChange={(e) => setTagInput(e.target.value)}
                                         onKeyDown={handleTagKeyDown}
+                                        onCompositionStart={handleCompositionStart}
+                                        onCompositionEnd={handleCompositionEnd}
                                         onClick={() => setShowTagSelector(true)}
                                         className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 rounded-l-lg focus:ring-2 focus:ring-pink-200 transition-all"
                                     />
@@ -393,6 +401,7 @@ export default function Step1({
                                             onClick={() => {
                                                 handleAddTag(tag);
                                                 setShowTagSelector(false);
+                                                setTagInput(""); // 선택 시에도 입력 필드 초기화
                                             }}
                                             className="p-3 hover:bg-pink-50 cursor-pointer flex items-center text-sm text-gray-700"
                                         >

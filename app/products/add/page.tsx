@@ -66,7 +66,7 @@ function AddProductContent() {
     const empty: FormDataType = {
       productName: "",
       description: "",
-      productType: "",
+      productType: "예금",
       depositAmount: "",
       periodCondition: "",
       interestRate: "",
@@ -200,6 +200,8 @@ function AddProductContent() {
       };
     });
   };
+
+  // 태그 입력 관련 핸들러들 - 필요없으므로 제거
 
   const handleProductImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) setProductImageFile(e.target.files[0]);
