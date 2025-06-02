@@ -1,4 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
+import { ApiError } from "@/app/error/ApiError";
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 import { RegisterProductRequest } from "@/types/Product";
 
@@ -10,13 +11,11 @@ export async function registerProduct(
 ) {
     try {
         const formData = new FormData();
-        // 이미지 파일
+
         formData.append("productImage", productImage);
-        // 안내서 파일 (있을 경우)
         if (guideFile) {
             formData.append("guideFile", guideFile);
         }
-        // JSON 형태의 요청 DTO
         formData.append("request", JSON.stringify(requestData));
 
         const accessToken = getAccessToken();
@@ -32,11 +31,14 @@ export async function registerProduct(
             body: formData,
         });
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to register product");
-          }
+            const errorData = await response.json().catch(() => ({}));
+            throw new ApiError(
+                errorData.code || "UNKNOWN",
+                response.status,
+                errorData.message || "상품 등록에 실패했습니다."
+            );
+        }
 
-        // 서버가 JSON이 아닌 메시지 문자열로 응답할 가능성 대비
         const resultText = await response.text();
         try {
             return JSON.parse(resultText);
@@ -62,9 +64,13 @@ export async function getProducts() {
         },
     });
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "상품 조회에 실패했습니다.");
-      }
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+            errorData.code || "UNKNOWN",
+            response.status,
+            errorData.message || "상품 조회에 실패했습니다."
+        );
+    }
     return response.json();
 }
 
@@ -82,9 +88,13 @@ export async function getProductById(id: number): Promise<FormData> {
         },
     });
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `상품 조회에 실패했습니다. status: ${response.status}`);
-      }
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+            errorData.code || "UNKNOWN",
+            response.status,
+            errorData.message || `상품 조회에 실패했습니다. status: ${response.status}`
+        );
+    }
     return response.json();
 }
 
@@ -101,9 +111,13 @@ export async function getSuspendedProducts() {
         },
     });
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "판매중지 상품 조회에 실패했습니다.");
-      }
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+            errorData.code || "UNKNOWN",
+            response.status,
+            errorData.message || "판매중지 상품 조회에 실패했습니다."
+        );
+    }
     return response.json();
 }
 
@@ -112,16 +126,21 @@ export async function getSuspendedProducts() {
 export async function getAllTags(): Promise<string[]> {
     const accessToken = getAccessToken();
     if (!accessToken) throw new Error("Access token is missing");
-    const res = await fetch(`${API_BASE_URL}/bank/products/tags`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
+    const response = await fetch(`${API_BASE_URL}/bank/products/tags`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+        },
     });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.message || "태그 조회에 실패했습니다");
-    }
-    return res.json();
-  }
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          errorData.code || "UNKNOWN",
+          response.status,
+          errorData.message || "태그 조회에 실패했습니다."
+        );
+      }
+    
+    return response.json();
+}

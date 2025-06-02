@@ -24,7 +24,6 @@ export default function AccountInfoComponent({
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<AccountInfo | null>(null)
 
-  console.log("부모에서 받은 tickerData:", tickerData);
   const [modalData, setModalData] = useState<{
     bankName: string;
     managerName: string;

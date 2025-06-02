@@ -1,6 +1,8 @@
 import { getAccessToken } from "@/context/AuthContext";
+import { ApiError } from "@/app/error/ApiError"; 
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
+
 
 
 export async function fetchBankInfoDetail() {
@@ -16,8 +18,8 @@ export async function fetchBankInfoDetail() {
     },
   });
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch bank info detail");
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(errorData.code || "UNKNOWN", response.status, errorData.message || "Failed to fetch bank info detail");
   }
   return response.json();
 }
@@ -29,7 +31,6 @@ export async function changeBankPhone(phoneNumber: string) {
     throw new Error("Access token is missing");
   }
 
-
   const response = await fetch(`${API_BASE_URL}/bank/change/phone`, {
     method: "PATCH",
     headers: {
@@ -39,10 +40,10 @@ export async function changeBankPhone(phoneNumber: string) {
     body: JSON.stringify({ bankPhoneNumber: phoneNumber }),
   });
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to change phone number");
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(errorData.code || "UNKNOWN", response.status, errorData.message || "Failed to change phone number");
   }
-  return response.text(); // 예: "담당자 연결 번호 변경 성공"
+  return response.text();
 }
 
 export async function changeBankCI(ciImage: File) {
@@ -62,8 +63,8 @@ export async function changeBankCI(ciImage: File) {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to change bank CI image");
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(errorData.code || "UNKNOWN", response.status, errorData.message || "Failed to change bank CI image");
   }
-  return response.text(); // 예: "은행 CI 이미지 변경 성공"
+  return response.text(); 
 }

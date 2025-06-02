@@ -1,4 +1,5 @@
 import { getAccessToken } from "@/context/AuthContext";
+import { ApiError } from "@/app/error/ApiError";
 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
@@ -15,8 +16,8 @@ export async function fetchBankAccounts() {
     }
   });
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch accounts");
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "Failed to fetch accounts");
   }
   return response.json();
 }
@@ -44,8 +45,8 @@ export async function registerBankAccount(managerName: string, currency: string,
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to register bank account");
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "Failed to fetch accounts");
   }
 }
 
@@ -72,8 +73,8 @@ export async function getAccountByCurrency(currency: string): Promise<{
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch account details");
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "Failed to fetch account details");
   }
 
   return response.json();
@@ -107,8 +108,8 @@ export async function changeBankAccount(
   })
 
   if (!response.ok) {
-    const errorData = await response.json()
-    throw new Error(errorData.message || "Failed to update bank account")
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "Failed to update bank account");
   }
 }
 
@@ -124,7 +125,8 @@ export const getRemainingCoinBalance = async (): Promise<RemainingCoinBalanceRes
   });
 
   if (!response.ok) {
-    throw new Error('잔여 코인 조회 실패');
+    const body = await response.json().catch(() => ({}));
+    throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "잔여 코인 조회 실패");
   }
 
   return response.json();
