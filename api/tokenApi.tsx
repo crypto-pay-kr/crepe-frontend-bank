@@ -1,11 +1,12 @@
 import { getAccessToken } from "@/context/AuthContext";
+import { ApiError } from "@/app/error/ApiError"; 
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 
 export async function getTokenHistory(page = 0, size = 10) {
 
   const accessToken = getAccessToken();
   if (!accessToken) {
-    throw new Error("Access token is missing");
+    throw new Error("액세스 토큰이 없습니다.");
   }
 
   const response = await fetch(`${API_BASE_URL}/bank/token/history?page=${page}&size=${size}`, {
@@ -14,9 +15,14 @@ export async function getTokenHistory(page = 0, size = 10) {
     },
   });
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch token history");
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      errorData.code || "UNKNOWN",
+      response.status,
+      errorData.message || "토큰 이력 조회에 실패했습니다."
+    );
   }
+
   return response.json();
 }
 
@@ -32,7 +38,7 @@ export async function createBankToken(requestData: {
 }) {
   const accessToken = getAccessToken();
   if (!accessToken) {
-    throw new Error("Access token is missing");
+    throw new Error("액세스 토큰이 없습니다.");
   }
 
   const response = await fetch(`${API_BASE_URL}/bank/token/create`, {
@@ -45,15 +51,17 @@ export async function createBankToken(requestData: {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to create bank token");
+    const errorData = await response.json().catch(() => ({}));
+    throw new ApiError(
+      errorData.code || "UNKNOWN",
+      response.status,
+      errorData.message || "은행 토큰 생성에 실패했습니다."
+    );
   }
-  // 서버가 JSON이 아닌 메시지 문자열을 반환하는 경우 예외 처리
   const resultText = await response.text();
   try {
     return JSON.parse(resultText);
   } catch (e) {
-    // JSON이 아닐 경우 그대로 메시지를 반환 (또는 필요한 로직 처리)
     return { message: resultText };
   }
 }
@@ -70,7 +78,7 @@ export async function recreateBankToken(requestData: {
 }) {
   const accessToken = getAccessToken();
   if (!accessToken) {
-    throw new Error("Access token is missing");
+    throw new Error("액세스 토큰이 없습니다.");
   }
 
   const response = await fetch(`${API_BASE_URL}/bank/token/recreate`, {
@@ -83,7 +91,7 @@ export async function recreateBankToken(requestData: {
   });
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to recreate bank token");
+    throw new Error(errorData.message || "은행 토큰 재생성에 실패했습니다.");
   }
 
   // 서버가 JSON이 아닌 메시지 문자열을 반환하는 경우 예외 처리
@@ -101,7 +109,7 @@ export async function getTokenPrice() {
 
   const accessToken = getAccessToken();
   if (!accessToken) {
-    throw new Error("Access token is missing");
+    throw new Error("액세스 토큰이 없습니다.");
   }
 
   const response = await fetch(`${API_BASE_URL}/bank/token/price`, {
@@ -111,7 +119,7 @@ export async function getTokenPrice() {
   });
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch token history");
+    throw new Error(errorData.message || "토큰 시세 조회에 실패했습니다.");
   }
   return response.json();
 }
@@ -121,7 +129,7 @@ export async function getTokenVolume() {
 
   const accessToken = getAccessToken();
   if (!accessToken) {
-    throw new Error("Access token is missing");
+    throw new Error("액세스 토큰이 없습니다.");
   }
 
   const response = await fetch(`${API_BASE_URL}/bank/token/volume`, {
@@ -131,7 +139,7 @@ export async function getTokenVolume() {
   });
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch token volume history ");
+    throw new Error(errorData.message || "토큰 거래량 조회에 실패했습니다.");
   }
   return response.json();
 }

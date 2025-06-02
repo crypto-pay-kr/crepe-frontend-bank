@@ -1,5 +1,6 @@
 const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/api`;
 import { toast } from "react-toastify";
+import { ApiError } from "@/app/error/ApiError"; 
 
 export interface BankLoginRequest {
   email: string;
@@ -27,8 +28,8 @@ export async function BankLogin(body: BankLoginRequest): Promise<LoginResponse> 
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "로그인에 실패했습니다.");
+      const body = await response.json().catch(() => ({}));
+      throw new ApiError(body.code || "UNKNOWN", response.status, body.message || "로그인에 실패했습니다.");
     }
     return response.json();
   } catch (err: any) {

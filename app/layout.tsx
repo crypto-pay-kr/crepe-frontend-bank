@@ -37,8 +37,8 @@ export default function RootLayout({
                 <ClientLayout>{children}</ClientLayout>
                 <ToastContainer
                   position="top-center"       
-                  autoClose={4000}
-                  hideProgressBar={false}
+                  autoClose={3000}
+                  hideProgressBar={true}
                   newestOnTop={false}
                   closeOnClick
                   rtl={false}
@@ -53,7 +53,6 @@ export default function RootLayout({
                     top: '20px'
                   }}
                   toastClassName="!w-full !max-w-none text-lg font-medium bg-white shadow-xl rounded-xl border border-gray-100 px-8 py-6 !mb-4"
-                  progressClassName="!bg-blue-500"
                 />
               </AuthGuard>
             </BankProvider>

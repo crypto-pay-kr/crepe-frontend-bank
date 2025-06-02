@@ -7,6 +7,7 @@ import SubHeader from "@/components/common/SubHeader";
 import { mapTokenRequestStatus } from "@/types/Token";
 import { fetchBankAccounts } from "@/api/bankAccountApi";
 import { toast } from "react-toastify";
+import { ApiError } from "@/app/error/ApiError";
 import { AccountInfo } from "@/types/Account";
 
 
@@ -32,21 +33,28 @@ export default function BankTokenRequests() {
       );
       setTokenRequests(sortedData);
     } catch (err) {
-      console.error(err);
+      if (err instanceof ApiError) {
+        toast.error(`${err.message}`); // ApiError의 메시지를 toast로 표시
+      } else {
+        toast.error("토큰 데이터를 불러오는 중 오류가 발생했습니다."); // 일반 오류 처리
+      }
     }
   };
+
 
     // 은행 계좌 목록 (Account)에서 실제로 가진 통화(currencies) 불러오기
     const fetchUserCurrencies = async () => {
       try {
-        // 예시 API (bankAccountApi)
         const bankAccounts: AccountInfo[] = await fetchBankAccounts();
         const currencies = bankAccounts.map((acc: any) => acc.currency);
-        // 중복 제거
-        const uniqueCurrencies = Array.from(new Set(currencies));
+        const uniqueCurrencies = Array.from(new Set(currencies)); // 중복 제거
         setAvailableCurrencies(uniqueCurrencies);
       } catch (err) {
-        console.error(err);
+        if (err instanceof ApiError) {
+          toast.error(`${err.message}`); // ApiError의 메시지를 toast로 표시
+        } else {
+          toast.error("은행 계좌 데이터를 불러오는 중 오류가 발생했습니다."); // 일반 오류 처리
+        }
       }
     };
   

@@ -9,6 +9,8 @@ import AccountRegistrationModal from "@/components/account/AccontManageModal";
 import { fetchBankAccounts } from "@/api/bankAccountApi";
 import { MappedAccount } from "@/types/Account";
 import { TickerData } from "@/types/Coin";
+import { toast } from "react-toastify"; 
+import { ApiError } from "@/app/error/ApiError"; 
 
 export default function BankAccountPage() {
   const tickerData = useTickerData();
@@ -34,12 +36,16 @@ export default function BankAccountPage() {
         tagAccount: item.tag || "",
         balance: {
           krw: "0 KRW",
-          crypto: `${item.balance} ${item.currency}`
-        }
+          crypto: `${item.balance} ${item.currency}`,
+        },
       }));
       setBankAccounts(mappedData);
     } catch (err) {
-      console.error(err);
+      if (err instanceof ApiError) {
+        toast.error(`${err.message}`); // ApiError의 메시지를 toast로 표시
+      } else {
+        toast.error("계좌 목록을 불러오는 중 오류가 발생했습니다."); // 일반 오류 처리
+      }
     }
   };
 
@@ -76,11 +82,15 @@ export default function BankAccountPage() {
     console.log("모달 제출 데이터:", data);
 
     try {
-
       // 등록/수정이 끝나면 목록 새로고침
       await refreshAccounts();
+      toast.success("계좌가 성공적으로 등록/수정되었습니다."); // 성공 메시지 표시
     } catch (err) {
-      console.error(err);
+      if (err instanceof ApiError) {
+        toast.error(`${err.message}`); // ApiError의 메시지를 toast로 표시
+      } else {
+        toast.error("계좌 등록/수정 중 오류가 발생했습니다."); // 일반 오류 처리
+      }
     } finally {
       setIsManageModalOpen(false);
     }
