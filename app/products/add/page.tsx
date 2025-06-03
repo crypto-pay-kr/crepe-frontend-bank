@@ -70,6 +70,7 @@ function AddProductContent() {
       depositAmount: "",
       periodCondition: "",
       interestRate: "",
+      storeType: "",
       maxMonthlyPayment: "",
       period: "",
       tags: [],
@@ -92,6 +93,7 @@ function AddProductContent() {
         productType: convertProductType(parsedData.type),
         depositAmount: parsedData.budget?.toString() ?? "",
         periodCondition: "",
+        storeType: parsedData.storeType ?? "",
         interestRate: parsedData.baseInterestRate?.toString() ?? "",
         maxMonthlyPayment: parsedData.maxMonthlyPayment?.toString() ?? "",
         period: "",
@@ -224,6 +226,8 @@ function AddProductContent() {
     const req: RegisterProductRequest = {
       productName: formData.productName,
       type: mapProductTypeToBackend(formData.productType),
+      storeType:
+          formData.productType === "상품권" ? formData.storeType : undefined,
       eligibilityCriteria: {
         ageGroups:
           formData.eligibilityAgeGroups.length > 0
