@@ -19,6 +19,7 @@ export interface RegisterProductRequest {
     endDate: string;    // "YYYY-MM-DD"
     tagNames: string[];
     description: string;
+    storeType?: string;
 }
 
 export interface FormDataType {
@@ -28,6 +29,7 @@ export interface FormDataType {
     depositAmount: string;
     periodCondition: string;
     interestRate: string;
+    storeType?: string;
     maxMonthlyPayment: string;
     period: string;
     tags: string[];

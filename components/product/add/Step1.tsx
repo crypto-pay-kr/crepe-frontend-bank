@@ -166,6 +166,32 @@ export default function Step1({
                         </div>
                     </div>
 
+                    {formData.productType === "상품권" && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">
+                                가게 유형
+                            </label>
+                            <div className="relative">
+                                <select
+                                    name="storeType"
+                                    value={(formData as any).storeType || ""}
+                                    onChange={handleChange}
+                                    className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg appearance-none focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                                    required
+                                >
+                                    <option value="">선택</option>
+                                    <option value="CAFE">카페</option>
+                                    <option value="RESTAURANT">음식점</option>
+                                    {/* 필요 시 추가 */}
+                                </select>
+                                <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                                    <ChevronDown size={16} className="text-gray-400" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+
                     {/* 상품 예치 자금 (총 한도) */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
