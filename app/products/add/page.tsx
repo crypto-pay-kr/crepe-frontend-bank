@@ -34,8 +34,10 @@ function AddProductContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("productId");
+  const mode = searchParams.get("mode"); // 'view' 또는 'edit'
 
   const [isModify, setIsModify] = useState(false);
+  const [isViewMode, setIsViewMode] = useState(false); // 읽기전용 모드 상태
   const [parsedData, setParsedData] = useState<Partial<any>>({});
   const [formData, setFormData] = useState<FormDataType | null>(null);
   const [currentStep, setCurrentStep] = useState(1);
@@ -51,15 +53,15 @@ function AddProductContent() {
   const tagSelectorRef = useRef<HTMLDivElement>(null);
   const categorySelectorRef = useRef<HTMLDivElement>(null);
 
-  // 1) productId 쿼리 포착 → 수정 모드, API 호출
-  useEffect(() => {
+ useEffect(() => {
     if (productId) {
       setIsModify(true);
+      setIsViewMode(mode === 'view'); // 읽기전용 모드 설정
       getProductById(+productId).then((data) => {
         setParsedData(data);
       });
     }
-  }, [productId]);
+  }, [productId, mode]);
 
   // 2) parsedData or isModify 변경 시 formData 초기화
   useEffect(() => {
@@ -211,7 +213,9 @@ function AddProductContent() {
   const handleGuideFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.[0]) setGuideFile(e.target.files[0]);
   };
-
+  const handleEnterEditMode = () => {
+    router.push(`/products/add?productId=${productId}&mode=edit`);
+  };
   const handleNextStep = () => setCurrentStep(2);
   const handlePrevStep = () => setCurrentStep(1);
 
@@ -219,6 +223,9 @@ function AddProductContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+     if (isViewMode) {
+      return; // 읽기전용 모드에서는 제출 불가
+    }
     if (!productImageFile) {
       toast.error("CI 이미지를 선택해주세요.");
       return;
@@ -287,38 +294,43 @@ function AddProductContent() {
           >
             <ArrowLeft size={18} className="mr-2" />
             <span className="text-xl font-bold">
-              {isModify ? "상품 수정" : "상품 추가 요청"}
+              {isViewMode ? "상품 상세 조회" : (isModify ? "상품 수정" : "상품 추가 요청")}
             </span>
           </Link>
-        </div>
+        </div>        
 
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          {/* 기존 스텝 표시 부분 */}
           <div className="bg-gray-50 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 1
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    currentStep === 1
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200 text-gray-600"
-                    }`}
+                  }`}
                 >
                   1
                 </div>
                 <div
-                  className={`h-1 w-20 mx-2 ${currentStep === 2 ? "bg-pink-500" : "bg-gray-200"
-                    }`}
+                  className={`h-1 w-20 mx-2 ${
+                    currentStep === 2 ? "bg-pink-500" : "bg-gray-200"
+                  }`}
                 />
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 2
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    currentStep === 2
                       ? "bg-pink-500 text-white"
                       : "bg-gray-200 text-gray-600"
-                    }`}
+                  }`}
                 >
                   2
                 </div>
               </div>
               <div className="text-gray-500 text-sm">
                 {currentStep === 1 ? "기본 정보" : "상세 내용"}
+                {isViewMode && " (읽기전용)"}
               </div>
             </div>
           </div>
@@ -341,6 +353,7 @@ function AddProductContent() {
               handleRemoveInterestRate={handleRemoveInterestRate}
               handleToggleEligibility={handleToggleEligibility}
               isModify={isModify}
+              isViewMode={isViewMode} // 읽기전용 모드 전달
             />
           )}
 
@@ -353,6 +366,7 @@ function AddProductContent() {
               handleProductImageChange={handleProductImageChange}
               handleProductManualChange={handleGuideFileChange}
               isModify={isModify}
+              isViewMode={isViewMode} // 읽기전용 모드 전달
             />
           )}
         </div>
