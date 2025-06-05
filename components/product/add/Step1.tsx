@@ -50,6 +50,7 @@ interface Step1Props {
         optionId: string
     ) => void;
     isModify: boolean;
+    isViewMode?: boolean; // 읽기전용 모드 prop 추가
 }
 
 export default function Step1({
@@ -69,6 +70,7 @@ export default function Step1({
     handleRemoveInterestRate,
     handleToggleEligibility,
     isModify,
+    isViewMode = false, // 기본값 false
 }: Step1Props) {
 
     const [tagInput, setTagInput] = useState("");
@@ -88,6 +90,8 @@ export default function Step1({
     const today = new Date().toISOString().split("T")[0];
     
     const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (isViewMode) return; // 읽기전용 모드에서는 태그 추가 불가
+        
         if (e.key === "Enter" && tagInput.trim() !== "" && !isComposing) {
             e.preventDefault();
             e.stopPropagation();
@@ -117,11 +121,16 @@ export default function Step1({
             occupations: formData.eligibilityOccupations,
             incomeLevels: formData.eligibilityIncomeLevels,
         };
+
+    // 읽기전용 모드용 공통 클래스
+    const getInputClassName = (baseClassName: string) => {
+        return `${baseClassName} ${isViewMode ? 'bg-gray-100 cursor-not-allowed' : ''}`;
+    };
     
     return (
         <div className="p-6">
             <h2 className="text-xl font-bold text-gray-700 mb-6 text-center">
-                상품 기본 정보
+                상품 기본 정보 {isViewMode && "(읽기전용)"}
             </h2>
 
             <div onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault() }}>
@@ -137,8 +146,9 @@ export default function Step1({
                             name="productName"
                             value={formData.productName}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             placeholder="상품명을 입력해주세요"
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                             required
                         />
                     </div>
@@ -153,7 +163,8 @@ export default function Step1({
                                 name="productType"
                                 value={formData.productType}
                                 onChange={handleChange}
-                                className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg appearance-none focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                                disabled={isViewMode}
+                                className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg appearance-none focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                                 required
                             >
                                 <option value="예금">예금</option>
@@ -176,13 +187,13 @@ export default function Step1({
                                     name="storeType"
                                     value={(formData as any).storeType || ""}
                                     onChange={handleChange}
-                                    className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg appearance-none focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                                    disabled={isViewMode}
+                                    className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg appearance-none focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                                     required
                                 >
                                     <option value="">선택</option>
                                     <option value="CAFE">카페</option>
                                     <option value="RESTAURANT">음식점</option>
-                                    {/* 필요 시 추가 */}
                                 </select>
                                 <div className="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
                                     <ChevronDown size={16} className="text-gray-400" />
@@ -190,7 +201,6 @@ export default function Step1({
                             </div>
                         </div>
                     )}
-
 
                     {/* 상품 예치 자금 (총 한도) */}
                     <div>
@@ -202,11 +212,13 @@ export default function Step1({
                             name="depositAmount"
                             value={formData.depositAmount}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             placeholder="예: 8000000"
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                             required
                         />
                     </div>
+                    
                     {/* 기본 금리 / 할인율 */}
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -218,8 +230,9 @@ export default function Step1({
                             name="interestRate"
                             value={formData.interestRate}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             placeholder="예: 3.0"
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                             required
                         />
                     </div>
@@ -238,8 +251,9 @@ export default function Step1({
                             name="maxMonthlyPayment"
                             value={formData.maxMonthlyPayment}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             placeholder="예: 500000"
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                         />
                     </div>
 
@@ -254,7 +268,7 @@ export default function Step1({
                             value={isModify ? formData.maxParticipants : ""}
                             readOnly
                             placeholder="자동 계산되어 입력됩니다"
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className="w-full p-3 bg-gray-100 text-gray-700 border-none rounded-lg cursor-not-allowed"
                         />
                     </div>
 
@@ -268,8 +282,9 @@ export default function Step1({
                             name="startDate"
                             value={formData.startDate}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             min={today}
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                         />
                     </div>
 
@@ -283,8 +298,9 @@ export default function Step1({
                             name="endDate"
                             value={formData.endDate}
                             onChange={handleChange}
+                            disabled={isViewMode}
                             min={today}
-                            className="w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all"
+                            className={getInputClassName("w-full p-3 bg-gray-50 text-gray-700 border-none rounded-lg focus:ring-2 focus:ring-pink-200 focus:outline-none transition-all")}
                         />
                     </div>
 
@@ -293,7 +309,8 @@ export default function Step1({
                         <h3 className="text-lg font-bold text-gray-700 mb-4">
                             자격 조건
                         </h3>
-                        {/* 연령 조건 - parsedJoin.ageGroups 이용 */}
+                        
+                        {/* 연령 조건 */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-600 mb-2">
                                 연령 조건
@@ -305,11 +322,12 @@ export default function Step1({
                                             type="checkbox"
                                             checked={parsedJoin.ageGroups.includes(option.id)}
                                             onChange={() =>
-                                                handleToggleEligibility("eligibilityAgeGroups", option.id)
+                                                !isViewMode && handleToggleEligibility("eligibilityAgeGroups", option.id)
                                             }
-                                            className="form-checkbox"
+                                            disabled={isViewMode}
+                                            className={`form-checkbox ${isViewMode ? 'cursor-not-allowed' : ''}`}
                                         />
-                                        <span className="text-sm text-gray-700">
+                                        <span className={`text-sm ${isViewMode ? 'text-gray-500' : 'text-gray-700'}`}>
                                             {option.label}
                                         </span>
                                     </label>
@@ -317,7 +335,7 @@ export default function Step1({
                             </div>
                         </div>
 
-                        {/* 직업 조건 - parsedJoin.occupations 이용 */}
+                        {/* 직업 조건 */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-600 mb-2">
                                 직업 조건
@@ -329,11 +347,12 @@ export default function Step1({
                                             type="checkbox"
                                             checked={parsedJoin.occupations.includes(option.id)}
                                             onChange={() =>
-                                                handleToggleEligibility("eligibilityOccupations", option.id)
+                                                !isViewMode && handleToggleEligibility("eligibilityOccupations", option.id)
                                             }
-                                            className="form-checkbox"
+                                            disabled={isViewMode}
+                                            className={`form-checkbox ${isViewMode ? 'cursor-not-allowed' : ''}`}
                                         />
-                                        <span className="text-sm text-gray-700">
+                                        <span className={`text-sm ${isViewMode ? 'text-gray-500' : 'text-gray-700'}`}>
                                             {option.label}
                                         </span>
                                     </label>
@@ -341,7 +360,7 @@ export default function Step1({
                             </div>
                         </div>
 
-                        {/* 소득 조건 - parsedJoin.incomeLevels 이용 */}
+                        {/* 소득 조건 */}
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-600 mb-2">
                                 소득 조건
@@ -353,11 +372,12 @@ export default function Step1({
                                             type="checkbox"
                                             checked={parsedJoin.incomeLevels.includes(option.id)}
                                             onChange={() =>
-                                                handleToggleEligibility("eligibilityIncomeLevels", option.id)
+                                                !isViewMode && handleToggleEligibility("eligibilityIncomeLevels", option.id)
                                             }
-                                            className="form-checkbox"
+                                            disabled={isViewMode}
+                                            className={`form-checkbox ${isViewMode ? 'cursor-not-allowed' : ''}`}
                                         />
-                                        <span className="text-sm text-gray-700">
+                                        <span className={`text-sm ${isViewMode ? 'text-gray-500' : 'text-gray-700'}`}>
                                             {option.label}
                                         </span>
                                     </label>
@@ -369,7 +389,7 @@ export default function Step1({
                     {/* 태그 추가 */}
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-600 mb-2">
-                            태그 추가
+                            태그 {isViewMode && "(읽기전용)"}
                         </label>
                         <div className="flex flex-wrap gap-2 mb-3">
                             {formData.tags.map((tag, index) => (
@@ -378,72 +398,77 @@ export default function Step1({
                                     className="bg-pink-50 px-3 py-1.5 rounded-md text-sm flex items-center text-pink-600"
                                 >
                                     {tag}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveTag(index)}
-                                        className="ml-2 text-pink-400 hover:text-pink-600"
-                                    >
-                                        <X size={14} />
-                                    </button>
+                                    {!isViewMode && (
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveTag(index)}
+                                            className="ml-2 text-pink-400 hover:text-pink-600"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                             {formData.tags.length === 0 && (
                                 <div className="text-gray-400 text-sm">
-                                    태그를 추가해주세요
+                                    {isViewMode ? "설정된 태그가 없습니다" : "태그를 추가해주세요"}
                                 </div>
                             )}
                         </div>
-                        <div className="relative" ref={tagSelectorRef}>
-                            <div className="flex">
-                                <div className="relative flex-1">
-                                    <input
-                                        type="text"
-                                        name="tagInput"
-                                        placeholder="태그를 입력 후 Enter 또는 클릭하여 추가"
-                                        value={tagInput}
-                                        onChange={(e) => setTagInput(e.target.value)}
-                                        onKeyDown={handleTagKeyDown}
-                                        onCompositionStart={handleCompositionStart}
-                                        onCompositionEnd={handleCompositionEnd}
+                        
+                        {!isViewMode && (
+                            <div className="relative" ref={tagSelectorRef}>
+                                <div className="flex">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="text"
+                                            name="tagInput"
+                                            placeholder="태그를 입력 후 Enter 또는 클릭하여 추가"
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={handleTagKeyDown}
+                                            onCompositionStart={handleCompositionStart}
+                                            onCompositionEnd={handleCompositionEnd}
+                                            onClick={() => setShowTagSelector(true)}
+                                            className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 rounded-l-lg focus:ring-2 focus:ring-pink-200 transition-all"
+                                        />
+                                        <Tag size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                    </div>
+                                    <button
+                                        type="button"
                                         onClick={() => setShowTagSelector(true)}
-                                        className="w-full pl-10 pr-4 py-2.5 bg-gray-50 text-gray-700 rounded-l-lg focus:ring-2 focus:ring-pink-200 transition-all"
-                                    />
-                                    <Tag size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                                        className="bg-pink-50 text-pink-500 px-4 rounded-r-lg hover:bg-pink-100 transition-colors"
+                                    >
+                                        <Plus size={18} />
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setShowTagSelector(true)}
-                                    className="bg-pink-50 text-pink-500 px-4 rounded-r-lg hover:bg-pink-100 transition-colors"
-                                >
-                                    <Plus size={18} />
-                                </button>
-                            </div>
 
-                            {showTagSelector && (
-                                <div className="absolute z-10 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg max-h-60 overflow-auto">
-                                    {availableTags.map((tag, idx) => (
-                                        <div
-                                            key={idx}
-                                            onClick={() => {
-                                                handleAddTag(tag);
-                                                setShowTagSelector(false);
-                                                setTagInput(""); // 선택 시에도 입력 필드 초기화
-                                            }}
-                                            className="p-3 hover:bg-pink-50 cursor-pointer flex items-center text-sm text-gray-700"
-                                        >
-                                            <Tag size={14} className="mr-2 text-pink-400" />
-                                            {tag}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                {showTagSelector && (
+                                    <div className="absolute z-10 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                        {availableTags.map((tag, idx) => (
+                                            <div
+                                                key={idx}
+                                                onClick={() => {
+                                                    handleAddTag(tag);
+                                                    setShowTagSelector(false);
+                                                    setTagInput("");
+                                                }}
+                                                className="p-3 hover:bg-pink-50 cursor-pointer flex items-center text-sm text-gray-700"
+                                            >
+                                                <Tag size={14} className="mr-2 text-pink-400" />
+                                                {tag}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     {/* 우대 금리 섹션 */}
                     <div className="md:col-span-2" ref={categorySelectorRef}>
                         <label className="block text-sm font-medium text-gray-600 mb-2">
-                            우대 금리
+                            우대 금리 {isViewMode && "(읽기전용)"}
                         </label>
                         <div className="space-y-2 mb-3">
                             {formData.additionalInterestRates.map((rate, index) => (
@@ -461,123 +486,137 @@ export default function Step1({
                                         <span className="mr-2 text-pink-500 font-medium">
                                             +{rate.rate}%
                                         </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveInterestRate(index)}
-                                            className="text-gray-400 hover:text-pink-500 w-6 h-6 flex items-center justify-center rounded-full hover:bg-pink-50"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                        {!isViewMode && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveInterestRate(index)}
+                                                className="text-gray-400 hover:text-pink-500 w-6 h-6 flex items-center justify-center rounded-full hover:bg-pink-50"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
+                            {formData.additionalInterestRates.length === 0 && (
+                                <div className="text-gray-400 text-sm p-3">
+                                    {isViewMode ? "설정된 우대 금리가 없습니다" : "우대 금리를 추가해주세요"}
+                                </div>
+                            )}
                         </div>
 
-                        {/* 우대 카테고리 선택 버튼 */}
-                        <div className="grid grid-cols-3 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setShowCategorySelector("AGE")}
-                                disabled={formData.productType === "상품권"}
-                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                                    }`}
-                            >
-                                <Plus size={16} className="text-pink-500" />
-                                <span className="text-gray-700">연령 우대금리</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setShowCategorySelector("AMOUNT")}
-                                disabled={formData.productType === "상품권"}
-                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
-                                    }`}
-                            >
-                                <Plus size={16} className="text-pink-500" />
-                                <span className="text-gray-700">금액 우대금리</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    formData.productType !== "예금" &&
-                                    formData.productType !== "상품권" &&
-                                    setShowCategorySelector("DEPOSIT")
-                                }
-                                disabled={
-                                    formData.productType === "예금" || formData.productType === "상품권"
-                                }
-                                className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "예금" || formData.productType === "상품권"
-                                    ? "opacity-50 cursor-not-allowed"
-                                    : "hover:bg-gray-50"
-                                    }`}
-                            >
-                                <Plus size={16} className="text-pink-500" />
-                                <span className="text-gray-700">
-                                    자유납입 우대금리
-                                </span>
-                            </button>
-                        </div>
-
-                        {/* 우대 카테고리 선택 목록 */}
-                        {showCategorySelector && (
-                            <div className="mt-3 rounded-lg border border-gray-100 shadow-sm p-4 bg-white">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-medium text-gray-700">
-                                        {showCategorySelector === "AGE" && "연령 우대금리 선택"}
-                                        {showCategorySelector === "AMOUNT" && "금액 우대금리 선택"}
-                                        {showCategorySelector === "DEPOSIT" && "자유납입 우대금리 선택"}
-                                    </h4>
+                        {/* 우대 카테고리 선택 버튼 - 읽기전용 모드에서는 숨김 */}
+                        {!isViewMode && (
+                            <>
+                                <div className="grid grid-cols-3 gap-2">
                                     <button
                                         type="button"
-                                        onClick={() => setShowCategorySelector(null)}
-                                        className="text-sm text-gray-400 hover:text-gray-600"
+                                        onClick={() => setShowCategorySelector("AGE")}
+                                        disabled={formData.productType === "상품권"}
+                                        className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                            }`}
                                     >
-                                        취소
+                                        <Plus size={16} className="text-pink-500" />
+                                        <span className="text-gray-700">연령 우대금리</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCategorySelector("AMOUNT")}
+                                        disabled={formData.productType === "상품권"}
+                                        className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "상품권" ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        <Plus size={16} className="text-pink-500" />
+                                        <span className="text-gray-700">금액 우대금리</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            formData.productType !== "예금" &&
+                                            formData.productType !== "상품권" &&
+                                            setShowCategorySelector("DEPOSIT")
+                                        }
+                                        disabled={
+                                            formData.productType === "예금" || formData.productType === "상품권"
+                                        }
+                                        className={`bg-white border border-gray-200 rounded-lg p-2.5 flex items-center justify-center gap-1.5 transition-colors text-sm ${formData.productType === "예금" || formData.productType === "상품권"
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : "hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        <Plus size={16} className="text-pink-500" />
+                                        <span className="text-gray-700">
+                                            자유납입 우대금리
+                                        </span>
                                     </button>
                                 </div>
-                                <div className="space-y-1">
-                                    {((showCategorySelector === "AGE"
-                                        ? AGE_CATEGORIES
-                                        : showCategorySelector === "AMOUNT"
-                                            ? AMOUNT_CATEGORIES
-                                            : DEPOSIT_CATEGORIES) || []
-                                    ).map((category) => (
-                                        <div
-                                            key={category.id}
-                                            className="flex items-center justify-between p-2 hover:bg-pink-50 cursor-pointer rounded-md transition-colors"
-                                            onClick={() => handleAddInterestRate(category)}
-                                        >
-                                            <div>
-                                                <span className="font-medium">{category.name}</span>
-                                                <span className="text-sm text-gray-500 ml-2">
-                                                    ({category.description})
-                                                </span>
-                                            </div>
-                                            <span className="text-pink-500 font-medium">
-                                                +{category.rate}%
-                                            </span>
+
+                                {/* 우대 카테고리 선택 목록 */}
+                                {showCategorySelector && (
+                                    <div className="mt-3 rounded-lg border border-gray-100 shadow-sm p-4 bg-white">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h4 className="font-medium text-gray-700">
+                                                {showCategorySelector === "AGE" && "연령 우대금리 선택"}
+                                                {showCategorySelector === "AMOUNT" && "금액 우대금리 선택"}
+                                                {showCategorySelector === "DEPOSIT" && "자유납입 우대금리 선택"}
+                                            </h4>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowCategorySelector(null)}
+                                                className="text-sm text-gray-400 hover:text-gray-600"
+                                            >
+                                                취소
+                                            </button>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
+                                        <div className="space-y-1">
+                                            {((showCategorySelector === "AGE"
+                                                ? AGE_CATEGORIES
+                                                : showCategorySelector === "AMOUNT"
+                                                    ? AMOUNT_CATEGORIES
+                                                    : DEPOSIT_CATEGORIES) || []
+                                            ).map((category) => (
+                                                <div
+                                                    key={category.id}
+                                                    className="flex items-center justify-between p-2 hover:bg-pink-50 cursor-pointer rounded-md transition-colors"
+                                                    onClick={() => handleAddInterestRate(category)}
+                                                >
+                                                    <div>
+                                                        <span className="font-medium">{category.name}</span>
+                                                        <span className="text-sm text-gray-500 ml-2">
+                                                            ({category.description})
+                                                        </span>
+                                                    </div>
+                                                    <span className="text-pink-500 font-medium">
+                                                        +{category.rate}%
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
                         )}
                     </div>
                 </div>
+                
+                {/* 하단 버튼 */}
                 <div className="mt-8 flex gap-3">
                     <button
                         type="button"
                         onClick={handleCancel}
                         className="flex-1 p-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                     >
-                        취소
+                        {isViewMode ? '목록으로' : '취소'}
                     </button>
                     <button
                         type="button"
                         onClick={handleNextStep}
-                        disabled={isNextDisabled}
-                        className={`flex-1 p-3 rounded-lg transition-all 
-                            ${isNextDisabled
+                        disabled={!isViewMode && isNextDisabled}
+                        className={`flex-1 p-3 rounded-lg transition-all ${
+                            !isViewMode && isNextDisabled
                                 ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                : "bg-pink-500 text-white hover:bg-pink-600"}`}
+                                : "bg-pink-500 text-white hover:bg-pink-600"
+                        }`}
                     >
                         다음
                     </button>

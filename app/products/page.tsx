@@ -70,10 +70,14 @@ export default function BankProductManagement() {
   };
 
 
-  // 수정 모드로 이동
-  const handleEditProduct = (productId: number) => {
-    router.push(`/products/add?productId=${productId}`);
+  const handleViewProduct = (productId: number) => {
+    router.push(`/products/add?productId=${productId}&mode=view`);
   };
+
+  const handleEditProduct = (productId: number) => {
+    router.push(`/products/add?productId=${productId}&mode=edit`);
+  };
+
 
   return (
     <div className="flex-1 h-screen p-8 overflow-auto bg-gray-50">
@@ -160,13 +164,13 @@ export default function BankProductManagement() {
                       </td>
                       <td className="py-3 px-1">
                         <button
-                          onClick={() => handleEditProduct(product.id)}
+                          onClick={() => handleViewProduct(product.id)} // 읽기전용 모드
                           className="w-full px-2 py-1 rounded-md text-xs font-medium border border-gray-400 text-gray-600 hover:bg-gray-50 hover:border-gray-500 transition-all flex items-center justify-center"
                         >
                           <Eye className="w-3 h-3 mr-1" />
                           상세 조회
                         </button>
-                      </td>
+                    </td>
                     </tr>
                   );
                 })}
