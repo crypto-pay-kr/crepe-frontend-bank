@@ -40,7 +40,7 @@ jobs:
           --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
           --build-arg NEXT_PUBLIC_SITE_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
           --build-arg NEXT_COIN_PRICE_URL=https://api.upbit.com/v1/ticker?markets=KRW-SOL,KRW-XRP,KRW-USDT \
-          --build-arg NEXT_PUBLIC_UPBIT_URL=wss://api.upbit.com/websocket/v1
+          --build-arg NEXT_PUBLIC_UPBIT_URL=wss://api.upbit.com/websocket/v1 \
           -t ${{ secrets.DOCKER_USERNAME}}/${{ secrets.DOCKER_PROD_REPO }}:latest \
           -t ${{ secrets.DOCKER_USERNAME}}/${{ secrets.DOCKER_PROD_REPO }}:${GITHUB_SHA::7} \
           .
